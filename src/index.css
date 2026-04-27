@@ -1,0 +1,190 @@
+:root {
+  --gold: #D4AF37;
+  --gold-light: #f1c40f;
+  --off-white: #e0e0e0;
+  --text-muted: #888;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  background-color: #030303;
+  color: var(--off-white);
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* --- NAVIGATION & SCROLL --- */
+section {
+  scroll-margin-top: 180px;
+}
+
+#galerie {
+  scroll-margin-top: 230px;
+}
+
+/* --- TYPOGRAPHIE --- */
+h1,
+h2,
+h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+
+.gold-text {
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: 500;
+}
+
+p {
+  line-height: 1.8;
+  font-weight: 300;
+  color: var(--off-white);
+}
+
+.nav-link {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  letter-spacing: 2px;
+  font-size: 0.75rem;
+  transition: all 0.4s ease;
+  text-decoration: none;
+  color: var(--off-white);
+}
+
+.nav-link:hover {
+  color: var(--gold);
+}
+
+button {
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  outline: none;
+}
+
+/* --- SECTION ABOUT & CADRES PREMIUM --- */
+.about-section {
+  padding: 100px 20px;
+  background-color: #030303;
+}
+
+.premium-card {
+  background: rgba(10, 10, 10, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  /* Liseré doré permanent */
+  padding: 60px;
+  margin-bottom: 80px;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  border-radius: 4px;
+}
+
+.premium-card:hover {
+  border-color: rgba(212, 175, 55, 0.6);
+  background: rgba(15, 15, 15, 0.6);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* --- GRILLE ABOUT --- */
+.about-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* Inversion sur Desktop */
+.about-row.reverse {
+  direction: rtl;
+}
+
+.about-text {
+  direction: ltr;
+  text-align: left;
+}
+
+.about-text p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+/* --- BOUTONS & IMAGES --- */
+.btn-more {
+  margin-top: 25px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 12px 28px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.75rem;
+  transition: 0.3s;
+}
+
+.btn-more:hover {
+  background: var(--gold);
+  color: #000;
+}
+
+.about-image-wrapper {
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: 10px 10px 0px rgba(212, 175, 55, 0.05);
+}
+
+.about-image-wrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0.8;
+  transition: 0.8s;
+}
+
+.premium-card:hover .about-image-wrapper img {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+/* --- RESPONSIVE & COHÉRENCE MOBILE --- */
+@media (max-width: 768px) {
+  .premium-card {
+    padding: 30px 20px;
+    margin-bottom: 40px;
+  }
+
+  /* Force l'ordre vertical : Texte d'abord, Image ensuite */
+  .about-row,
+  .about-row.reverse {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 40px;
+    direction: ltr !important;
+  }
+
+  /* Le texte passe en haut grâce à l'ordre Flex */
+  .about-text {
+    order: 1;
+    width: 100%;
+  }
+
+  .about-image-wrapper {
+    order: 2;
+    width: 100%;
+  }
+
+  .main-title-about {
+    font-size: 2.2rem !important;
+  }
+}
+
