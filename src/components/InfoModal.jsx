@@ -27,12 +27,13 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
             exit={{ scale: 0.95, y: 30 }}
             className="modal-content" 
             onClick={(e) => e.stopPropagation()}
-            /* Suppression du drag ici pour libérer le scroll global */
           >
-            <button className="close-btn" onClick={onClose} aria-label="Fermer"><X size={28} /></button>
+            {/* Bouton fermer isolé en haut à droite */}
+            <button className="close-btn" onClick={onClose} aria-label="Fermer"><X size={24} /></button>
 
             <div className="modal-inner">
               
+              {/* NAVIGATION HAUTE AVEC ESPACE POUR LA CROIX */}
               <div className="top-nav">
                 <button onClick={prev} className="nav-btn">
                   <ChevronLeft size={20} />
@@ -57,7 +58,6 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
               </div>
 
               <div className="scroll-container">
-                {/* On place le drag UNIQUEMENT sur l'image pour permettre le changement d'étape au swipe sans bloquer le scroll du texte */}
                 <motion.div 
                    key={`img-${currentStep}`}
                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
         .modal-overlay {
           position: fixed; inset: 0; background: rgba(0,0,0,0.98);
           display: flex; align-items: center; justify-content: center;
-          z-index: 10000; backdrop-filter: blur(15px); padding: 15px;
+          z-index: 10000; backdrop-filter: blur(15px); padding: 10px;
         }
         .modal-content {
           background: #050505; border: 1px solid #1a1a1a;
@@ -98,49 +98,60 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
           position: relative; color: white; display: flex; flex-direction: column;
           border-radius: 4px; overflow: hidden;
         }
-        .modal-inner { display: flex; flex-direction: column; height: 100%; padding: 20px; overflow: hidden; }
+        .modal-inner { display: flex; flex-direction: column; height: 100%; padding: 15px; overflow: hidden; }
         
+        /* NAVIGATION HAUTE : On ajoute du padding à droite pour ne pas toucher la croix sur mobile */
         .top-nav {
           display: flex; justify-content: space-between; align-items: center;
-          padding-bottom: 20px; border-bottom: 1px solid #1a1a1a; margin-bottom: 20px;
+          padding-bottom: 15px; border-bottom: 1px solid #1a1a1a; margin-bottom: 15px;
           flex-shrink: 0;
+          padding-right: 40px; /* Espace réservé pour la croix */
         }
-        .nav-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .step-counter { color: #D4AF37; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; }
-        .nav-btn { background: #111; border: 1px solid #222; color: #D4AF37; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-center { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .step-counter { color: #D4AF37; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; }
+        
+        .nav-btn { 
+          background: #111; border: 1px solid #222; color: #D4AF37; 
+          border-radius: 50%; width: 36px; height: 36px; 
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
 
-        .dots { display: flex; gap: 8px; }
-        .dot { width: 6px; height: 6px; background: #333; border-radius: 50%; transition: 0.3s; cursor: pointer; }
-        .dot.active { background: #D4AF37; transform: scale(1.4); }
+        .dots { display: flex; gap: 6px; }
+        .dot { width: 5px; height: 5px; background: #333; border-radius: 50%; cursor: pointer; }
+        .dot.active { background: #D4AF37; transform: scale(1.3); }
 
-        /* SCROLL CONTAINER OPTIMISÉ */
         .scroll-container { 
-          overflow-y: auto; 
-          flex-grow: 1; 
-          padding-top: 10px;
-          -webkit-overflow-scrolling: touch; /* Scroll fluide iOS */
+          overflow-y: auto; flex-grow: 1; padding-top: 5px;
+          -webkit-overflow-scrolling: touch;
         }
 
         .step-image { touch-action: pan-y; cursor: grab; }
-        .step-image:active { cursor: grabbing; }
-        .step-image img { width: 100%; height: auto; border: 1px solid #222; margin-bottom: 25px; object-fit: cover; max-height: 250px; }
+        .step-image img { width: 100%; height: auto; border: 1px solid #222; margin-bottom: 20px; object-fit: cover; max-height: 220px; }
         
-        .step-text h2 { font-size: 1.8rem; color: #D4AF37; font-family: 'Cormorant Garamond', serif; margin-bottom: 15px; line-height: 1.2; }
-        .step-text p { font-size: 1rem; color: #aaa; line-height: 1.6; padding-bottom: 20px; }
+        .step-text h2 { font-size: 1.6rem; color: #D4AF37; font-family: 'Cormorant Garamond', serif; margin-bottom: 12px; line-height: 1.2; }
+        .step-text p { font-size: 0.95rem; color: #aaa; line-height: 1.5; padding-bottom: 20px; }
 
-        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #555; cursor: pointer; z-index: 10; }
+        /* POSITION DE LA CROIX : Fixed en haut à droite de la modale */
+        .close-btn { 
+          position: absolute; top: 12px; right: 12px; background: #111; 
+          border: 1px solid #222; color: #555; cursor: pointer; z-index: 20; 
+          border-radius: 50%; width: 36px; height: 36px;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.3s ease;
+        }
+        .close-btn:hover { color: #D4AF37; border-color: #D4AF37; }
 
         @media (min-width: 769px) {
           .modal-inner { padding: 40px 60px; }
+          .top-nav { padding-right: 0; } /* On remet normal sur desktop */
           .scroll-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
           .step-image img { max-height: none; margin-bottom: 0; }
-          .step-text h2 { font-size: 2.8rem; }
-          .step-text p { font-size: 1.15rem; }
+          .step-text h2 { font-size: 2.5rem; }
+          .close-btn { top: 20px; right: 20px; }
         }
 
         @media (max-width: 768px) {
-          .step-text h2 { font-size: 1.5rem; }
-          .modal-content { max-height: 95vh; }
+          .modal-content { max-height: 92vh; }
         }
       `}</style>
     </AnimatePresence>
