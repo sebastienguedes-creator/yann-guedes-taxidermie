@@ -37,7 +37,7 @@ const Gallery = () => {
 
   return (
     <section id="galerie" style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-      
+
       {/* Menu de navigation */}
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
         {categories.map(cat => (
@@ -97,14 +97,14 @@ const Gallery = () => {
       {/* --- 3. AJOUT : La Lightbox (s'affiche seulement si selectedImg existe) --- */}
       <AnimatePresence>
         {selectedImg && (
-          <motion.div 
+          <motion.div
             className="lightbox"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedImg(null)} // Clic sur le fond pour fermer
           >
-            <motion.div 
+            <motion.div
               className="lightbox-container"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
@@ -123,10 +123,21 @@ const Gallery = () => {
 
       <style>{`
         .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-          gap: 15px;
-        }
+            display: grid;
+            /* Sur mobile (petits écrans), on permet aux vignettes de descendre jusqu'à 140px 
+              ce qui en affichera automatiquement 2 par ligne sur la plupart des téléphones */
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+            gap: 10px; /* On réduit un peu l'espace entre les vignettes sur mobile */
+            width: 100%;
+          }
+
+          /* Sur les écrans plus larges (Tablettes/PC), on repasse à des vignettes plus confortables */
+          @media (min-width: 600px) {
+            .gallery-grid {
+              grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+              gap: 15px;
+            }
+          }
 
         .gallery-item {
           position: relative;
