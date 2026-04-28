@@ -1,10 +1,21 @@
+// generate-sitemap.js
+import 'dotenv/config';
 import { createClient } from '@sanity/client';
-import 'dotenv/config'; // Permet de lire le fichier .env
 import fs from 'fs';
 
+// Cette ligne permet de lire les variables soit en local (.env) 
+// soit sur Vercel (process.env)
+const projectId = process.env.VITE_SANITY_PROJECT_ID;
+const dataset = process.env.VITE_SANITY_DATASET;
+
+if (!projectId) {
+  console.error("ERREUR : VITE_SANITY_PROJECT_ID n'est pas défini !");
+  process.exit(1);
+}
+
 const client = createClient({
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID, 
-  dataset: import.meta.env.VITE_SANITY_DATASET,
+  projectId: projectId,
+  dataset: dataset || 'production',
   useCdn: false,
   apiVersion: '2023-05-03',
 });
