@@ -23,8 +23,19 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
           className="modal-overlay" onClick={onClose}
         >
           <motion.div 
-            initial={{ scale: 0.95, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 30 }}
-            className="modal-content" onClick={(e) => e.stopPropagation()}
+            initial={{ scale: 0.95, y: 30 }} 
+            animate={{ scale: 1, y: 0 }} 
+            exit={{ scale: 0.95, y: 30 }}
+            className="modal-content" 
+            onClick={(e) => e.stopPropagation()}
+            /* --- AJOUT POUR LE SWIPE MOBILE (NON-RÉGRESSIF) --- */
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = offset.x;
+              if (swipe < -50) next(); // Balayage vers la gauche
+              if (swipe > 50) prev();  // Balayage vers la droite
+            }}
           >
             <button className="close-btn" onClick={onClose} aria-label="Fermer"><X size={28} /></button>
 
@@ -75,6 +86,8 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
           width: 100%; max-width: 900px; max-height: 90vh;
           position: relative; color: white; display: flex; flex-direction: column;
           border-radius: 4px; overflow: hidden;
+          /* --- AJOUT POUR PERMETTRE LE SCROLL VERTICAL DURANT LE DRAG --- */
+          touch-action: pan-y;
         }
         .modal-inner { display: flex; flex-direction: column; height: 100%; padding: 40px 25px 20px; }
         
@@ -84,8 +97,8 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
 
         .step-image img { width: 100%; height: auto; border: 1px solid #222; margin-bottom: 25px; object-fit: cover; max-height: 250px; }
         
-        .step-text h2 { font-size: 1.8rem; color: #D4AF37; fontFamily: 'Cormorant Garamond', serif; margin-bottom: 15px; line-height: 1.2; }
-        .step-text p { font-size: 1rem; color: #aaa; lineHeight: 1.6; }
+        .step-text h2 { font-size: 1.8rem; color: #D4AF37; font-family: 'Cormorant Garamond', serif; margin-bottom: 15px; line-height: 1.2; }
+        .step-text p { font-size: 1rem; color: #aaa; line-height: 1.6; }
 
         .step-nav {
           display: flex; justify-content: space-between; align-items: center;
@@ -99,7 +112,6 @@ const InfoModal = ({ isOpen, onClose, steps }) => {
         
         .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #D4AF37; cursor: pointer; z-index: 10; }
 
-        /* DESKTOP OPTIMIZATIONS */
         @media (min-width: 769px) {
           .modal-inner { padding: 60px; }
           .scroll-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; overflow: hidden; }
