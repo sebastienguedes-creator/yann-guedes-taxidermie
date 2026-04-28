@@ -48,7 +48,7 @@ const Gallery = () => {
 
   return (
     <section
-      id={filter.toLowerCase()}
+      id="galerie"
       style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}
     >
 
