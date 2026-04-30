@@ -4,7 +4,7 @@ import imageUrlBuilder from '@sanity/image-url';
 export const client = createClient({
   projectId: '0abl700c', 
   dataset: 'production',
-  useCdn: true, // Pour que les photos chargent ultra-vite
+  useCdn: false, // Pour que les photos chargent ultra-vite
   apiVersion: '2023-05-03',
 });
 

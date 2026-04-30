@@ -3,29 +3,43 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { client, urlFor } from '../client';
 
 const Gallery = () => {
-  const categories = ["Oiseaux", "Mammifères", "Trophées", "Poissons"];
-  const [filter, setFilter] = useState("Oiseaux");
-  const [items, setItems] = useState([]);
+  const categories = ["Mammifères", "Oiseaux", "Poissons", "Trophées"];
+  // Par défaut sur Oiseaux, comme dans ton code original
+  const [filter, setFilter] = useState("Mammifères"); 
+  const [items, setItems] = useState({}); 
   const [loading, setLoading] = useState(true);
-
-  // --- 1. AJOUT : État pour l'image agrandie ---
-  const [selectedImg, setSelectedImg] = useState(null);
+  const [selectedImg,  setSelectedImg] = useState(null);
 
   useEffect(() => {
-    const query = `*[_type == "specimen"]{
-      _id,
-      title,
-      category,
-      mainImage
+    // La requête récupère le document unique de configuration
+    // On renomme les clés pour qu'elles correspondent exactement aux noms des catégories du menu
+    const query = `*[_type == "galleryOrder"][0]{
+      "Oiseaux": oiseaux[]->{ _id, title, category, mainImage },
+      "Mammifères": mammiferes[]->{ _id, title, category, mainImage },
+      "Poissons": poissons[]->{ _id, title, category, mainImage },
+      "Trophées": trophees[]->{ _id, title, category, mainImage }
     }`;
 
-    client.fetch(query).then((data) => {
-      setItems(data);
-      setLoading(false);
-    }).catch(console.error);
+    setLoading(true);
+
+    client.fetch(query)
+      .then((data) => {
+        if (data) {
+          // On stocke l'objet contenant les 4 listes déjà triées par Sanity
+          setItems(data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Erreur Sanity:", err);
+        setLoading(false);
+      });
   }, []);
 
-  const filteredItems = items.filter(item => item.category === filter);
+  // ÉTAPE CRUCIALE POUR LA NON-RÉGRESSION :
+  // On ne fait plus de .filter() sur un tableau global.
+  // On pioche directement le tableau ordonné correspondant au filtre actif.
+  const filteredItems = items[filter] || [];
 
   if (loading) {
     return (
@@ -75,15 +89,16 @@ const Gallery = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.4 }}
               className="gallery-item"
-              // --- 2. AJOUT : Clic pour ouvrir ---
               onClick={() => setSelectedImg(item)}
             >
               <div className="image-container">
-                <img
-                  src={urlFor(item.mainImage).width(600).url()}
-                  alt={item.title}
-                  loading="lazy"
-                />
+                {item.mainImage && (
+                  <img
+                    src={urlFor(item.mainImage).width(600).url()}
+                    alt={item.title}
+                    loading="lazy"
+                  />
+                )}
                 <div className="overlay">
                   <span>{item.category}</span>
                   <h3>{item.title}</h3>
@@ -94,7 +109,7 @@ const Gallery = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* --- 3. AJOUT : La Lightbox (s'affiche seulement si selectedImg existe) --- */}
+      {/* Lightbox */}
       <AnimatePresence>
         {selectedImg && (
           <motion.div
@@ -102,14 +117,14 @@ const Gallery = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedImg(null)} // Clic sur le fond pour fermer
+            onClick={() => setSelectedImg(null)}
           >
             <motion.div
               className="lightbox-container"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              onClick={(e) => e.stopPropagation()} // Empêche de fermer si on clique sur l'image
+              onClick={(e) => e.stopPropagation()}
             >
               <img src={urlFor(selectedImg.mainImage).width(1200).url()} alt={selectedImg.title} />
               <div className="lightbox-info">
@@ -124,14 +139,11 @@ const Gallery = () => {
       <style>{`
         .gallery-grid {
             display: grid;
-            /* Sur mobile (petits écrans), on permet aux vignettes de descendre jusqu'à 140px 
-              ce qui en affichera automatiquement 2 par ligne sur la plupart des téléphones */
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-            gap: 10px; /* On réduit un peu l'espace entre les vignettes sur mobile */
+            gap: 10px;
             width: 100%;
           }
 
-          /* Sur les écrans plus larges (Tablettes/PC), on repasse à des vignettes plus confortables */
           @media (min-width: 600px) {
             .gallery-grid {
               grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -165,7 +177,6 @@ const Gallery = () => {
         .overlay span { color: #D4AF37; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; }
         .overlay h3 { margin: 5px 0 0; font-weight: 300; color: #fff; font-size: 1.2rem; }
 
-        /* --- 4. AJOUT : Styles de la Lightbox --- */
         .lightbox {
           position: fixed;
           top: 0; left: 0; width: 100%; height: 100%;
