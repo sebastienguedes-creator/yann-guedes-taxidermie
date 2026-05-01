@@ -94,7 +94,7 @@ const Gallery = () => {
               <div className="image-container">
                 {item.mainImage && (
                   <img
-                    src={urlFor(item.mainImage).width(600).url()}
+                    src={urlFor(item.mainImage).width(600).height(750).fit('crop').url()}
                     alt={item.title}
                     loading="lazy"
                   />
