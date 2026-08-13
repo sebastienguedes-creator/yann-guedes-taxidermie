@@ -28,11 +28,22 @@ function App() {
           <main>
             {/* Intro */}
             <section style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <span style={{ 
+                display: 'block', 
+                color: '#D4AF37', 
+                fontSize: '0.85rem', 
+                letterSpacing: '3px', 
+                textTransform: 'uppercase', 
+                marginBottom: '15px',
+                fontWeight: '500'
+              }}>
+                Yann Guedes — Taxidermiste d'Art
+              </span>
               <h2 className="gold-text" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>
-                L'immortalité sublimée
+                L'animal au naturel
               </h2>
               <p style={{ fontSize: '1.1rem', opacity: 0.7 }}>
-                Découvrez l'art de la naturalisation à travers mes dernières créations.
+                Découvrez l'art de la naturalisation à travers mes dernières réalisations.
               </p>
             </section>
 
@@ -43,7 +54,7 @@ function App() {
             <Contact />
           </main>
 
-<Footer />
+          <Footer />
         </div>
       </div>
     </HelmetProvider>

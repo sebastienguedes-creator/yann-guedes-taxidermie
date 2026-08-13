@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { client, urlFor } from '../client';
 
 const Gallery = () => {
-  const categories = ["Mammifères", "Oiseaux", "Poissons", "Trophées"];
+  const categories = ["Mammifères", "Oiseaux", "Poissons", "Trophées", "Nature morte"];
   // Par défaut sur Oiseaux, comme dans ton code original
   const [filter, setFilter] = useState("Mammifères"); 
   const [items, setItems] = useState({}); 
@@ -17,7 +17,8 @@ const Gallery = () => {
       "Oiseaux": oiseaux[]->{ _id, title, category, mainImage },
       "Mammifères": mammiferes[]->{ _id, title, category, mainImage },
       "Poissons": poissons[]->{ _id, title, category, mainImage },
-      "Trophées": trophees[]->{ _id, title, category, mainImage }
+      "Trophées": trophees[]->{ _id, title, category, mainImage },
+      "Nature morte": natureMorte[]->{ _id, title, category, mainImage }
     }`;
 
     setLoading(true);

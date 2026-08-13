@@ -58,6 +58,19 @@ export default {
           filter: 'category == "Trophées"'
         }
       }],
+    },
+
+    {
+      name: 'natureMorte', // Nom technique
+      title: 'Nature morte', // Nom affiché dans Sanity
+      type: 'array',
+      of: [{ 
+        type: 'reference', 
+        to: [{ type: 'specimen' }],
+        options: {
+          filter: 'category == "Nature morte"' // Doit correspondre à la valeur dans vos spécimens
+        }
+      }],
     }
   ]
 }

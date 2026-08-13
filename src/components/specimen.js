@@ -10,7 +10,7 @@ export default {
       // On rend le champ obligatoire ici :
       validation: Rule => Rule.required().error('Attention : tu dois choisir une catégorie pour que l\'animal apparaisse dans la galerie !'),
       options: {
-        list: ["Oiseaux", "Mammifères", "Trophées", "Poissons"],
+        list: ["Oiseaux", "Mammifères", "Trophées", "Poissons", "Nature morte"],
       }
     },
     {

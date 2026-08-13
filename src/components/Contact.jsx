@@ -8,26 +8,31 @@ const Contact = () => {
                 <h2 className="gold-text" style={{ fontSize: '2rem', marginBottom: '40px' }}>Contact & Devis</h2>
 
                 <div className="contact-grid">
-                    {/* Infos directes */}
+                    {/* Infos directes cliquables pour mobile */}
                     <div className="contact-info">
                         <div className="info-item">
                             <Phone size={20} color="#D4AF37" />
-                            <span>06 13 68 89 12</span>
+                            <a href="tel:0613688912" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
+                                06 13 68 89 12
+                            </a>
                         </div>
                         <div className="info-item">
                             <Mail size={20} color="#D4AF37" />
-                            <span>contact@yannguedes.fr</span>
+                            <a href="mailto:contact@yannguedes.fr" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
+                                contact@yannguedes.fr
+                            </a>
                         </div>
-                        <div className="info-item">
+                        <div className="info-item" style={{ color: '#d1d1d1' }}>
                             <MapPin size={20} color="#D4AF37" />
                             <span>Atelier à Oherville, Normandie</span>
                         </div>
                     </div>
 
-                    {/* Formulaire */}
+                    {/* Formulaire avec champ Téléphone ajouté */}
                     <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
                         <input type="text" placeholder="Votre Nom" required />
                         <input type="email" placeholder="Votre Email" required />
+                        <input type="tel" placeholder="Votre Téléphone" />
                         <textarea placeholder="Décrivez votre projet (espèce, type de pose...)" rows="5" required></textarea>
                         <button type="submit">Envoyer la demande</button>
                     </form>
@@ -48,22 +53,29 @@ const Contact = () => {
           margin-bottom: 25px;
           font-size: 1.1rem;
         }
+        .info-item a:hover {
+          color: #D4AF37 !important;
+        }
         .contact-form {
           display: flex;
           flex-direction: column;
           gap: 15px;
         }
         .contact-form input, .contact-form textarea {
-          background: #111;
-          border: 1px solid #333;
+          background: #161616;
+          border: 1px solid #4d4d4d;
           padding: 15px;
           color: white;
           border-radius: 4px;
           font-family: inherit;
         }
+        .contact-form input::placeholder, .contact-form textarea::placeholder {
+          color: #888;
+        }
         .contact-form input:focus, .contact-form textarea:focus {
           outline: none;
           border-color: #D4AF37;
+          background: #1c1c1c;
         }
         .contact-form button {
           background: #D4AF37;
