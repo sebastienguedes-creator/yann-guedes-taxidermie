@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
+import logo from '../assets/logo.svg';
 
 const Contact = () => {
     return (
@@ -18,13 +19,22 @@ const Contact = () => {
                         </div>
                         <div className="info-item">
                             <Mail size={20} color="#D4AF37" />
-                            <a href="mailto:contact@yannguedes.fr" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
-                                contact@yannguedes.fr
+                            <a href="mailto:yann.guedes76@gmail.com" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
+                                yann.guedes76@gmail.com
                             </a>
                         </div>
-                        <div className="info-item" style={{ color: '#d1d1d1' }}>
-                            <MapPin size={20} color="#D4AF37" />
-                            <span>Atelier à Oherville, Normandie</span>
+                        
+                        {/* Bloc Adresse + Logo Desktop */}
+                        <div className="info-item address-block" style={{ color: '#d1d1d1', flexDirection: 'column', alignItems: 'flex-start', gap: '0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <MapPin size={20} color="#D4AF37" />
+                                <span>Atelier à Oherville, Normandie</span>
+                            </div>
+
+                            {/* Logo qui trône fièrement uniquement sur PC */}
+                            <div className="desktop-logo-wrapper">
+                                <img src={logo} alt="Yann Guedes - Taxidermiste" />
+                            </div>
                         </div>
                     </div>
 
@@ -56,6 +66,30 @@ const Contact = () => {
         .info-item a:hover {
           color: #D4AF37 !important;
         }
+
+        /* Gestion du logo Desktop sous l'adresse */
+        .desktop-logo-wrapper {
+          display: none; /* Masqué par défaut sur mobile */
+        }
+
+        @media (min-width: 768px) {
+          .desktop-logo-wrapper {
+            display: block;
+            margin-top: 30px;
+            width: 100%;
+            text-align: center;
+          }
+          .desktop-logo-wrapper img {
+            height: 240px;
+            width: auto;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.9));
+            transition: transform 0.4s ease;
+          }
+          .desktop-logo-wrapper img:hover {
+            transform: scale(1.03);
+          }
+        }
+
         .contact-form {
           display: flex;
           flex-direction: column;

@@ -1,8 +1,23 @@
-import { motion } from 'framer-motion';
-// Importation des données depuis le fichier dédié
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+// Importation des données depuis le fichier dédié[cite: 6]
 import { workshopSteps } from '../data/siteData';
 
 const About = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const nextStep = () => {
+    if (currentStep < workshopSteps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
   return (
     <section id="atelier" className="about-section">
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 20px' }}>
@@ -21,74 +36,237 @@ const About = () => {
             Exigence & Précision Anatomique
           </h2>
           <div style={{ width: '60px', height: '2px', backgroundColor: '#D4AF37', margin: '30px auto' }}></div>
-          <p style={{ fontSize: '1.4rem', fontStyle: 'italic', color: '#bbb', maxWidth: '700px', margin: '0 auto', fontFamily: "'Cormorant Garamond', serif" }}>
-            Chaque espèce possède sa propre morphologie, sa dynamique et ses détails musculaires. La réussite d'un montage repose sur une connaissance approfondie de l'anatomie animale et sur une observation minutieuse pour obtenir une posture juste, réaliste et équilibrée.
-          </p>
         </motion.div>
 
         {/* SAVOIR-FAIRE - Pavé principal */}
         <div className="about-row">
           <div className="about-text">
             <h3 style={{ fontSize: '2rem', color: '#D4AF37', marginBottom: '20px' }}>Savoir-faire & Méthodes</h3>
-            <p>De la préparation de la peau aux finitions (travail de la tête, des yeux et des expressions), l'atelier associe des méthodes artisanales éprouvées à des mannequins et matériaux contemporains. Qu'il s'agisse d'un oiseau en vol, d'un petit carnivore ou d'un grand trophée, l'exigence reste la même : assurer la solidité, le réalisme et la conservation à long terme de vos pièces.</p>
+            <p>Chaque espèce possède sa propre morphologie, sa dynamique et ses détails musculaires. La réussite d'un montage repose sur une connaissance approfondie de l'anatomie animale et sur une observation minutieuse pour obtenir une posture juste, réaliste et équilibrée. De la préparation de la peau aux finitions (travail de la tête, des yeux et des expressions), l'atelier associe des méthodes artisanales éprouvées à des mannequins et matériaux contemporains. Qu'il s'agisse d'un oiseau en vol, d'un petit carnivore ou d'un grand trophée, l'exigence reste la même : assurer la solidité, le réalisme et la conservation à long terme de vos pièces.</p>
           </div>
           <div className="about-image-wrapper">
             <img src="https://placehold.co/500x600/1a1a1a/D4AF37?text=Le+Geste" alt="Atelier" />
           </div>
         </div>
 
-        {/* DÉTAIL DES ÉTAPES (Intégration directe des données de siteData) */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          gap: '30px', 
-          marginTop: '60px',
-          marginBottom: '80px'
-        }}>
-          {workshopSteps.map((step, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              style={{
-                backgroundColor: '#1a1a1a',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                border: '1px solid #333',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >
-              <img 
-                src={step.img} 
-                alt={step.title} 
-                style={{ width: '100%', height: '220px', objectFit: 'cover' }} 
-              />
-              {/* MODIFICATIONS UI/UX ICI : Amélioration de la lisibilité */}
-              <div style={{ padding: '30px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                <span style={{ color: '#D4AF37', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Étape {index + 1}
-                </span>
-                <h4 style={{ fontSize: '1.4rem', color: '#fff', marginBottom: '15px' }}>
-                  {step.title}
-                </h4>
-                <p style={{ 
-                  fontSize: '1.05rem', 
-                  color: '#d1d1d1', /* Gris plus clair pour contraster avec le fond sombre */
-                  lineHeight: '1.8', /* Aération des lignes */
-                  fontWeight: '300', /* Texte légèrement plus fin */
-                  margin: 0 
+        {/* DÉTAIL DES ÉTAPES - CARROUSEL ADAPTATIF MOBILE/DESKTOP */}
+        <div style={{ marginTop: '80px', marginBottom: '80px' }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <span style={{ color: '#D4AF37', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
+              Le Processus de Création
+            </span>
+            <h3 style={{ fontSize: '2.2rem', color: '#fff', marginTop: '8px' }}>Les Étapes d'une Naturalisation</h3>
+          </div>
+
+          <div style={{
+            backgroundColor: '#141414',
+            borderRadius: '16px',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            position: 'relative'
+          }}>
+            
+            {/* Barre de progression */}
+            <div style={{ width: '100%', height: '3px', backgroundColor: '#222' }}>
+              <div style={{
+                height: '100%',
+                backgroundColor: '#D4AF37',
+                width: `${((currentStep + 1) / workshopSteps.length) * 100}%`,
+                transition: 'width 0.4s ease-in-out'
+              }}></div>
+            </div>
+
+            {/* Zone de contenu (Grille adaptative) */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="step-content-grid"
+              >
+                {/* Photo de l'étape */}
+                <div className="step-image-container" style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+                  <img 
+                    src={workshopSteps[currentStep]?.img} 
+                    alt={workshopSteps[currentStep]?.title} 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to right, transparent 70%, #141414 100%)'
+                  }} className="desktop-fade"></div>
+                </div>
+
+                {/* Texte de l'étape */}
+                <div style={{
+                  padding: '25px 25px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  position: 'relative'
                 }}>
-                  {step.desc}
-                </p>
+                  <span style={{ 
+                    color: '#D4AF37', 
+                    fontSize: '0.75rem', 
+                    fontWeight: 'bold', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '2px',
+                    marginBottom: '6px'
+                  }}>
+                    Étape {String(currentStep + 1).padStart(2, '0')} sur {String(workshopSteps.length).padStart(2, '0')}
+                  </span>
+
+                  <h4 style={{ 
+                    fontSize: '1.4rem', 
+                    color: '#fff', 
+                    marginBottom: '10px',
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontWeight: '500'
+                  }}>
+                    {workshopSteps[currentStep]?.title}
+                  </h4>
+
+                  <p style={{ 
+                    fontSize: '0.95rem', 
+                    color: '#ccc', 
+                    lineHeight: '1.5', 
+                    fontWeight: '300',
+                    margin: 0
+                  }}>
+                    {workshopSteps[currentStep]?.desc}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Barre de navigation inférieure fixe */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 20px',
+              backgroundColor: '#0a0a0a',
+              borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+            }}>
+              
+              {/* Puces */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {workshopSteps.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentStep(idx)}
+                    aria-label={`Aller à l'étape ${idx + 1}`}
+                    style={{
+                      width: currentStep === idx ? '20px' : '6px',
+                      height: '6px',
+                      borderRadius: '3px',
+                      backgroundColor: currentStep === idx ? '#D4AF37' : '#333',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                  />
+                ))}
               </div>
-            </motion.div>
-          ))}
+
+              {/* Chevrons & Compteur */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ color: '#888', fontSize: '0.8rem', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                  <strong style={{ color: '#D4AF37' }}>{String(currentStep + 1).padStart(2, '0')}</strong> / {String(workshopSteps.length).padStart(2, '0')}
+                </span>
+
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    aria-label="Étape précédente"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: currentStep === 0 ? 'transparent' : 'rgba(212, 175, 55, 0.1)',
+                      border: `1px solid ${currentStep === 0 ? '#222' : '#D4AF37'}`,
+                      color: currentStep === 0 ? '#444' : '#D4AF37',
+                      fontSize: '0.9rem',
+                      cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    &#8249;
+                  </button>
+
+                  <button
+                    onClick={nextStep}
+                    disabled={currentStep === workshopSteps.length - 1}
+                    aria-label="Étape suivante"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: currentStep === workshopSteps.length - 1 ? 'transparent' : 'rgba(212, 175, 55, 0.1)',
+                      border: `1px solid ${currentStep === workshopSteps.length - 1 ? '#222' : '#D4AF37'}`,
+                      color: currentStep === workshopSteps.length - 1 ? '#444' : '#D4AF37',
+                      fontSize: '0.9rem',
+                      cursor: currentStep === workshopSteps.length - 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    &#8250;
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
 
       </div>
+
+      {/* RÈGLES RESPONSIVES CSS */}
+      <style>{`
+        /* Style Mobile par défaut : Empilé proprement (Image en haut, texte en bas) */
+        .step-content-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .step-image-container {
+          height: 180px; /* Hauteur fixe idéale pour l'image sur mobile */
+        }
+
+        /* Style Desktop (≥ 768px) : Côte à côte */
+        @media (min-width: 768px) {
+          .step-content-grid {
+            grid-template-columns: 1fr 1fr;
+            height: 580px;
+          }
+          .step-image-container {
+            height: 100%; /* Occupe toute la hauteur de la grille */
+          }
+        }
+
+        @media (max-width: 767px) {
+          .desktop-fade {
+            display: none;
+          }
+        }
+      `}</style>
     </section>
   );
 };

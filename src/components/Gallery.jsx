@@ -4,15 +4,14 @@ import { client, urlFor } from '../client';
 
 const Gallery = () => {
   const categories = ["Mammifères", "Oiseaux", "Poissons", "Trophées", "Nature morte"];
-  // Par défaut sur Oiseaux, comme dans ton code original
+  // Par défaut sur Mammifères
   const [filter, setFilter] = useState("Mammifères"); 
   const [items, setItems] = useState({}); 
   const [loading, setLoading] = useState(true);
-  const [selectedImg,  setSelectedImg] = useState(null);
+  const [selectedImg, setSelectedImg] = useState(null);
 
   useEffect(() => {
     // La requête récupère le document unique de configuration
-    // On renomme les clés pour qu'elles correspondent exactement aux noms des catégories du menu
     const query = `*[_type == "galleryOrder"][0]{
       "Oiseaux": oiseaux[]->{ _id, title, category, mainImage },
       "Mammifères": mammiferes[]->{ _id, title, category, mainImage },
@@ -26,7 +25,6 @@ const Gallery = () => {
     client.fetch(query)
       .then((data) => {
         if (data) {
-          // On stocke l'objet contenant les 4 listes déjà triées par Sanity
           setItems(data);
         }
         setLoading(false);
@@ -37,9 +35,6 @@ const Gallery = () => {
       });
   }, []);
 
-  // ÉTAPE CRUCIALE POUR LA NON-RÉGRESSION :
-  // On ne fait plus de .filter() sur un tableau global.
-  // On pioche directement le tableau ordonné correspondant au filtre actif.
   const filteredItems = items[filter] || [];
 
   if (loading) {
@@ -53,7 +48,22 @@ const Gallery = () => {
   return (
     <section id="galerie" style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
 
-      {/* Menu de navigation */}
+      {/* Titre principal de la galerie (Même style que "L'animal au naturel") */}
+      <h2 className="gold-text" style={{ fontSize: '2.5rem', marginBottom: '10px', textAlign: 'center' }}>
+        Galerie & Créations
+      </h2>
+
+      {/* Sous-titre centré */}
+      <p style={{ 
+        fontSize: '1.1rem', 
+        opacity: 0.7, 
+        textAlign: 'center',
+        marginBottom: '30px'
+      }}>
+        Découvrez l'art de la naturalisation à travers quelques réalisations.
+      </p>
+
+      {/* Menu de navigation / Filtres */}
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
         {categories.map(cat => (
           <button

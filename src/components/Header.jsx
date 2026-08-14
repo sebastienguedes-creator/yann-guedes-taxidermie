@@ -1,47 +1,109 @@
+import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 
 const Header = () => {
-  const navLinks = [
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const allLinks = [
     { name: 'Accueil', href: '#accueil' },
     { name: 'Galerie', href: '#galerie' },
     { name: "L'Atelier", href: '#atelier' },
     { name: 'Contact', href: '#contact' },
   ];
 
+  // DÉFILEMENT FLUIDE & AGRANDISSEMENT DU LOGO AU CLIC
+  const handleNavClick = (e, href) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    // Réinitialise immédiatement la taille du logo au clic
+    setIsScrolled(false);
+
+    const targetElement = document.querySelector(href);
+    if (targetElement) {
+      const headerOffset = 90;
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <header style={{
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      backgroundColor: '#000',
-      position: 'sticky', // Le menu reste en haut quand on descend
+      position: 'fixed',
       top: 0,
+      left: 0,
+      right: 0,
       zIndex: 1000,
-      borderBottom: '1px solid #1a1a1a'
+      backgroundColor: isScrolled ? 'rgba(0, 0, 0, 0.95)' : 'rgba(0, 0, 0, 0.85)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      borderBottom: '1px solid rgba(212, 175, 55, 0.25)',
+      height: '75px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 25px',
+      transition: 'background-color 0.4s ease'
     }}>
       <h1 style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}>
         Yann Guedes - Taxidermiste d'Art en Normandie
       </h1>
-      <img
-        src={logo}
-        alt="Yann Guedes Taxidermiste"
-        style={{ width: '200px', height: 'auto', marginBottom: '20px' }}
-      />
 
-      <nav>
-        <ul style={{
-          display: 'flex',
-          gap: '30px',
-          listStyle: 'none',
-          padding: 0,
-          margin: 0
-        }}>
-          {navLinks.map((link) => (
+      {/* ESPACE VIDE GAUCHE POUR ÉQUILIBRER LE HEADER */}
+      <div className="nav-side" style={{ width: '150px' }}></div>
+
+      {/* LOGO DYNAMIQUE (Reduit au scroll, grandit au clic) */}
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '10px',
+        transform: isScrolled 
+          ? 'translateX(-50%) translateY(-8px) scale(0.35)' 
+          : 'translateX(-50%) scale(1)',
+        opacity: 1, // Toujours visible !
+        pointerEvents: 'auto',
+        transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+        transformOrigin: 'top center',
+        zIndex: 10
+      }}>
+        <a href="#accueil" onClick={(e) => handleNavClick(e, '#accueil')} style={{ display: 'block' }}>
+          <img
+            src={logo}
+            alt="Yann Guedes Taxidermiste - 06 13 68 89 12"
+            style={{
+              height: '180px',
+              width: 'auto',
+              display: 'block',
+              filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.9))'
+            }}
+          />
+        </a>
+      </div>
+
+      {/* TOUS LES LIENS DU MENU DESKTOP À DROITE */}
+      <nav className="nav-side">
+        <ul style={{ display: 'flex', gap: '35px', listStyle: 'none', margin: 0, padding: 0 }}>
+          {allLinks.map((link) => (
             <li key={link.name}>
-              <a
-                href={link.href}
+              <a 
+                href={link.href} 
                 className="nav-link"
+                onClick={(e) => handleNavClick(e, link.href)}
               >
                 {link.name}
               </a>
@@ -50,23 +112,127 @@ const Header = () => {
         </ul>
       </nav>
 
+      {/* BOUTON BURGER MOBILE */}
+      <button
+        className="mobile-burger-btn"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Menu de navigation"
+      >
+        {isMobileMenuOpen ? '✕' : '☰'}
+      </button>
+
+      {/* RIDEAU MENU MOBILE */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay">
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, textAlign: 'center' }}>
+            {allLinks.map((link) => (
+              <li key={link.name} style={{ margin: '30px 0' }}>
+                <a
+                  href={link.href}
+                  className="mobile-nav-link"
+                  onClick={(e) => handleNavClick(e, link.href)}
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <style>{`
         .nav-link {
           color: #fff;
           text-decoration: none;
           text-transform: uppercase;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           letter-spacing: 2px;
-          opacity: 0.6;
+          opacity: 0.75;
           transition: opacity 0.3s, color 0.3s;
+          position: relative;
+          padding-bottom: 4px;
+          font-weight: 500;
         }
+
         .nav-link:hover {
           opacity: 1;
           color: #D4AF37;
         }
-        /* Défilement fluide pour toute la page */
-        html {
-          scroll-behavior: smooth;
+
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          width: 0;
+          height: 1px;
+          background-color: #D4AF37;
+          transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+          width: 100%;
+          left: 0;
+        }
+
+        .mobile-burger-btn {
+          display: none;
+          background: transparent;
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          color: #D4AF37;
+          font-size: 1.4rem;
+          padding: 4px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+          z-index: 1001;
+          transition: all 0.3s ease;
+        }
+
+        .mobile-overlay {
+          position: fixed;
+          top: 75px;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: calc(100vh - 75px);
+          background-color: rgba(0, 0, 0, 0.96);
+          backdrop-filter: blur(15px);
+          -webkit-backdrop-filter: blur(15px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 999;
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .mobile-nav-link {
+          color: #fff;
+          text-decoration: none;
+          text-transform: uppercase;
+          font-size: 1.2rem;
+          letter-spacing: 3px;
+          font-weight: 500;
+          transition: color 0.3s ease;
+        }
+
+        .mobile-nav-link:active,
+        .mobile-nav-link:hover {
+          color: #D4AF37;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+          .nav-side {
+            display: none;
+          }
+          .mobile-burger-btn {
+            display: block;
+            margin-left: auto;
+          }
         }
       `}</style>
     </header>
