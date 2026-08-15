@@ -4,14 +4,12 @@ import { client, urlFor } from '../client';
 
 const Gallery = () => {
   const categories = ["Mammifères", "Oiseaux", "Poissons", "Trophées", "Nature morte"];
-  // Par défaut sur Mammifères
   const [filter, setFilter] = useState("Mammifères"); 
   const [items, setItems] = useState({}); 
   const [loading, setLoading] = useState(true);
   const [selectedImg, setSelectedImg] = useState(null);
 
   useEffect(() => {
-    // La requête récupère le document unique de configuration
     const query = `*[_type == "galleryOrder"][0]{
       "Oiseaux": oiseaux[]->{ _id, title, category, mainImage },
       "Mammifères": mammiferes[]->{ _id, title, category, mainImage },
@@ -37,6 +35,23 @@ const Gallery = () => {
 
   const filteredItems = items[filter] || [];
 
+  // FONCTION DE NAVIGATION DANS LA LIGHTBOX
+  const navigateLightbox = (e, direction) => {
+    e.stopPropagation();
+    
+    const currentIndex = filteredItems.findIndex(item => item._id === selectedImg._id);
+    if (currentIndex === -1) return;
+
+    let newIndex;
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % filteredItems.length;
+    } else {
+      newIndex = (currentIndex - 1 + filteredItems.length) % filteredItems.length;
+    }
+    
+    setSelectedImg(filteredItems[newIndex]);
+  };
+
   if (loading) {
     return (
       <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D4AF37', fontFamily: 'Cormorant Garamond, serif', fontSize: '1.5rem', letterSpacing: '2px' }}>
@@ -48,12 +63,10 @@ const Gallery = () => {
   return (
     <section id="galerie" style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
 
-      {/* Titre principal de la galerie (Même style que "L'animal au naturel") */}
       <h2 className="gold-text" style={{ fontSize: '2.5rem', marginBottom: '10px', textAlign: 'center' }}>
         Galerie & Créations
       </h2>
 
-      {/* Sous-titre centré */}
       <p style={{ 
         fontSize: '1.1rem', 
         opacity: 0.7, 
@@ -63,7 +76,6 @@ const Gallery = () => {
         Découvrez l'art de la naturalisation à travers quelques unes de mes réalisations.
       </p>
 
-      {/* Menu de navigation / Filtres */}
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
         {categories.map(cat => (
           <button
@@ -88,7 +100,6 @@ const Gallery = () => {
         ))}
       </div>
 
-      {/* Grille des vignettes */}
       <motion.div layout className="gallery-grid">
         <AnimatePresence mode='popLayout'>
           {filteredItems.map((item) => (
@@ -120,7 +131,7 @@ const Gallery = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Lightbox */}
+      {/* Lightbox avec navigation */}
       <AnimatePresence>
         {selectedImg && (
           <motion.div
@@ -130,6 +141,16 @@ const Gallery = () => {
             exit={{ opacity: 0 }}
             onClick={() => setSelectedImg(null)}
           >
+            {/* CHEVRON GAUCHE */}
+            {filteredItems.length > 1 && (
+              <button 
+                className="lightbox-nav left"
+                onClick={(e) => navigateLightbox(e, 'prev')}
+              >
+                &#10094;
+              </button>
+            )}
+
             <motion.div
               className="lightbox-container"
               initial={{ scale: 0.8 }}
@@ -143,6 +164,16 @@ const Gallery = () => {
                 <button onClick={() => setSelectedImg(null)}>Fermer</button>
               </div>
             </motion.div>
+
+            {/* CHEVRON DROIT */}
+            {filteredItems.length > 1 && (
+              <button 
+                className="lightbox-nav right"
+                onClick={(e) => navigateLightbox(e, 'next')}
+              >
+                &#10095;
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -188,17 +219,50 @@ const Gallery = () => {
         .overlay span { color: #D4AF37; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; }
         .overlay h3 { margin: 5px 0 0; font-weight: 300; color: #fff; font-size: 1.2rem; }
 
+        /* CORRECTION DE LA LIGHTBOX ICI */
         .lightbox {
           position: fixed;
-          top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(0, 0, 0, 0.9);
+          top: 0; left: 0; right: 0; bottom: 0; /* Remplace width 100% et height 100% */
+          background: rgba(0, 0, 0, 0.95);
           display: flex; align-items: center; justify-content: center;
-          z-index: 1000; padding: 20px;
+          z-index: 1000;
+          /* Suppression du padding problématique sur mobile */
         }
 
+        .lightbox-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.6);
+          color: #D4AF37;
+          border: 1px solid rgba(212, 175, 55, 0.3);
+          font-size: 1.5rem;
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          border-radius: 50%;
+          z-index: 1001;
+          transition: all 0.3s ease;
+        }
+        
+        .lightbox-nav:hover {
+          background: rgba(212, 175, 55, 0.2);
+          border-color: #D4AF37;
+          transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-nav.left { left: 20px; }
+        .lightbox-nav.right { right: 20px; }
+
         .lightbox-container {
-          max-width: 900px; width: 100%; position: relative;
-          background: #111; border: 1px solid #333;
+          max-width: 900px; 
+          width: 80%; /* Laisse de la place pour les chevrons sur PC */
+          position: relative;
+          background: #111; 
+          border: 1px solid #333;
         }
 
         .lightbox-container img {
@@ -215,6 +279,21 @@ const Gallery = () => {
         .lightbox-info button {
           background: transparent; border: 1px solid #D4AF37; color: #D4AF37;
           padding: 5px 15px; border-radius: 20px; cursor: pointer;
+        }
+
+        /* Ajustements mobiles pour recentrer parfaitement */
+        @media (max-width: 768px) {
+          .lightbox-nav {
+            width: 35px;
+            height: 35px;
+            font-size: 1.2rem;
+          }
+          .lightbox-nav.left { left: 5px; }
+          .lightbox-nav.right { right: 5px; }
+          .lightbox-container { 
+            width: 100%; /* Prend toute la place sur mobile */
+            border: none;
+          }
         }
       `}</style>
     </section>
