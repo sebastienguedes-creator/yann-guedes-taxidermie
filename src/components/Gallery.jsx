@@ -33,6 +33,32 @@ const Gallery = () => {
       });
   }, []);
 
+  // GESTION DU BOUTON RETOUR MOBILE (LIGHTBOX)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedImg) {
+        setSelectedImg(null);
+      }
+    };
+
+    if (selectedImg) {
+      // On pousse un état dans l'historique quand la lightbox s'ouvre
+      window.history.pushState({ lightboxOpen: true }, '');
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [selectedImg]);
+
+  // Fonction propre pour fermer la lightbox (via UI ou bouton retour)
+  const closeLightbox = () => {
+    if (selectedImg) {
+      window.history.back();
+    }
+  };
+
   const filteredItems = items[filter] || [];
 
   // FONCTION DE NAVIGATION DANS LA LIGHTBOX
@@ -139,7 +165,7 @@ const Gallery = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedImg(null)}
+            onClick={closeLightbox}
           >
             {/* CHEVRON GAUCHE */}
             {filteredItems.length > 1 && (
@@ -161,7 +187,7 @@ const Gallery = () => {
               <img src={urlFor(selectedImg.mainImage).width(1200).url()} alt={selectedImg.title} />
               <div className="lightbox-info">
                 <h3>{selectedImg.title}</h3>
-                <button onClick={() => setSelectedImg(null)}>Fermer</button>
+                <button onClick={closeLightbox}>Fermer</button>
               </div>
             </motion.div>
 
@@ -217,16 +243,14 @@ const Gallery = () => {
 
         .gallery-item:hover .overlay { transform: translateY(0); }
         .overlay span { color: #D4AF37; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; }
-        .overlay h3 { margin: 5px 0 0; font-weight: 300; color: #fff; font-size: 1.2rem; }
+        .overlay h3 { margin: s5px 0 0; font-weight: 300; color: #fff; font-size: 1.2rem; }
 
-        /* CORRECTION DE LA LIGHTBOX ICI */
         .lightbox {
           position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0; /* Remplace width 100% et height 100% */
+          top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(0, 0, 0, 0.95);
           display: flex; align-items: center; justify-content: center;
           z-index: 1000;
-          /* Suppression du padding problématique sur mobile */
         }
 
         .lightbox-nav {
@@ -259,7 +283,7 @@ const Gallery = () => {
 
         .lightbox-container {
           max-width: 900px; 
-          width: 80%; /* Laisse de la place pour les chevrons sur PC */
+          width: 80%; 
           position: relative;
           background: #111; 
           border: 1px solid #333;
@@ -281,7 +305,6 @@ const Gallery = () => {
           padding: 5px 15px; border-radius: 20px; cursor: pointer;
         }
 
-        /* Ajustements mobiles pour recentrer parfaitement */
         @media (max-width: 768px) {
           .lightbox-nav {
             width: 35px;
@@ -291,7 +314,7 @@ const Gallery = () => {
           .lightbox-nav.left { left: 5px; }
           .lightbox-nav.right { right: 5px; }
           .lightbox-container { 
-            width: 100%; /* Prend toute la place sur mobile */
+            width: 100%; 
             border: none;
           }
         }
