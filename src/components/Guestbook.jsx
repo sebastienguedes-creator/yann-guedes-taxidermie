@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, CheckCircle, Loader2, Star, CornerDownRight, Trash2, Edit3, ShieldCheck } from 'lucide-react';
 // Assurez-vous que le chemin vers votre client Supabase est correct
 import { supabase } from '../utils/supabaseClient';
@@ -8,7 +8,7 @@ const Guestbook = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
-    
+
     // États pour l'authentification Admin
     const [user, setUser] = useState(null);
     const [showLoginModal, setShowLoginModal] = useState(false);
@@ -35,9 +35,9 @@ const Guestbook = () => {
         const initSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user || null);
-            fetchMessages(); 
+            fetchMessages();
         };
-        
+
         initSession();
 
         // Écoute uniquement des vrais changements d'état (connexion/déconnexion)
@@ -63,7 +63,7 @@ const Guestbook = () => {
         try {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
-            
+
             setShowLoginModal(false);
             setEmail('');
             setPassword('');
@@ -76,6 +76,29 @@ const Guestbook = () => {
     const handleLogout = async () => {
         await supabase.auth.signOut();
     };
+
+    // Chronomètre pour l'appui long sur mobile
+    const pressTimer = useRef(null);
+
+    const handleTouchStart = () => {
+        // On démarre un chrono de 1.5 seconde
+        pressTimer.current = setTimeout(() => {
+            if (user) {
+                handleLogout();
+            } else {
+                setShowLoginModal(true);
+            }
+        }, 1500); // 1500 millisecondes = 1,5 seconde
+    };
+
+    const handleTouchEnd = () => {
+        // Si on relâche le doigt (ou si on glisse) avant la fin du chrono, on annule l'action
+        if (pressTimer.current) {
+            clearTimeout(pressTimer.current);
+        }
+    };
+
+
 
     const handleTitleDoubleClick = () => {
         if (user) {
@@ -94,7 +117,7 @@ const Guestbook = () => {
                 .from('guestbook')
                 .select('*')
                 .order('created_at', { ascending: false });
-                
+
             if (error) throw error;
             if (data) setMessages(data);
         } catch (error) {
@@ -119,7 +142,7 @@ const Guestbook = () => {
             }]);
 
             if (error) throw error;
-            
+
             setForm({ firstName: '', lastName: '', city: '', message: '', rating: 5 });
             setSuccess(true);
             setTimeout(() => setSuccess(false), 6000);
@@ -210,7 +233,7 @@ const Guestbook = () => {
 
     return (
         <section id="livredor" style={{ padding: '80px 20px', backgroundColor: '#0a0a0a', borderTop: '1px solid rgba(212, 175, 55, 0.15)', position: 'relative' }}>
-            
+
             {/* Modal de Connexion Secret */}
             {showLoginModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
@@ -234,10 +257,20 @@ const Guestbook = () => {
                     <span style={{ color: '#D4AF37', fontSize: '0.85rem', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '500' }}>
                         Témoignages & Avis
                     </span>
-                    <h2 
-                        className="gold-text" 
-                        style={{ fontSize: '2.5rem', marginTop: '10px', cursor: 'default', userSelect: 'none' }}
+                    <h2
+                        className="gold-text"
+                        style={{
+                            fontSize: '2.5rem',
+                            marginTop: '10px',
+                            cursor: 'default',
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none', // Empêche la sélection de texte sur Safari/iOS
+                            WebkitTouchCallout: 'none' // Empêche le menu natif "Copier/Partager" d'apparaître
+                        }}
                         onDoubleClick={handleTitleDoubleClick}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchCancel={handleTouchEnd}
                     >
                         Livre d'Or {user && <span style={{ fontSize: '0.9rem', color: '#2ecc71', display: 'block', marginTop: '5px' }}>(Mode Admin Actif)</span>}
                     </h2>
@@ -247,21 +280,21 @@ const Guestbook = () => {
                 </div>
 
                 <div className="guestbook-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', alignItems: 'start' }}>
-                    
+
                     {/* FORMULAIRE CLIENT */}
                     <div style={{ background: '#141414', padding: '30px', borderRadius: '12px', border: '1px solid #262626' }}>
                         <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <MessageSquare size={20} color="#D4AF37" /> Laisser un mot
                         </h3>
-                        
+
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                <input type="text" placeholder="Prénom" value={form.firstName} onChange={(e) => setForm({...form, firstName: e.target.value})} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
-                                <input type="text" placeholder="Nom" value={form.lastName} onChange={(e) => setForm({...form, lastName: e.target.value})} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
+                                <input type="text" placeholder="Prénom" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
+                                <input type="text" placeholder="Nom" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
                             </div>
                             <span style={{ color: '#777', fontSize: '0.75rem', marginTop: '-8px' }}>* Le nom ne sera pas publié et restera confidentiel.</span>
 
-                            <input type="text" placeholder="Votre Ville (ex: Rouen)" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})} style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px' }} />
+                            <input type="text" placeholder="Votre Ville (ex: Rouen)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px' }} />
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: '#1c1c1c', border: '1px solid #333', padding: '12px', borderRadius: '6px' }}>
                                 <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Votre note :</label>
@@ -274,7 +307,7 @@ const Guestbook = () => {
                                 </div>
                             </div>
 
-                            <textarea placeholder="Votre message..." rows="4" value={form.message} onChange={(e) => setForm({...form, message: e.target.value})} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', fontFamily: 'inherit' }}></textarea>
+                            <textarea placeholder="Votre message..." rows="4" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', fontFamily: 'inherit' }}></textarea>
 
                             <button type="submit" disabled={submitting} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '12px', fontWeight: 'bold', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                 {submitting ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Publier mon avis
@@ -295,20 +328,20 @@ const Guestbook = () => {
                         ) : (
                             displayedMessages.map((item) => (
                                 <div key={item.id} style={{ background: '#141414', padding: '20px', borderRadius: '12px', border: item.approved ? '1px solid #222' : '1px dashed #D4AF37', position: 'relative' }}>
-                                    
+
                                     {/* NOUVEAU : Options Admin (Modifier et Supprimer l'avis) */}
                                     {user && (
                                         <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' }}>
-                                            <button 
-                                                onClick={() => { setEditingMessageId(item.id); setEditMessageText(item.message); }} 
-                                                title="Modifier cet avis" 
+                                            <button
+                                                onClick={() => { setEditingMessageId(item.id); setEditMessageText(item.message); }}
+                                                title="Modifier cet avis"
                                                 style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: '4px' }}
                                             >
                                                 <Edit3 size={16} />
                                             </button>
-                                            <button 
-                                                onClick={() => handleDeleteMessage(item.id)} 
-                                                title="Supprimer cet avis" 
+                                            <button
+                                                onClick={() => handleDeleteMessage(item.id)}
+                                                title="Supprimer cet avis"
                                                 style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '4px' }}
                                             >
                                                 <Trash2 size={16} />
@@ -339,15 +372,15 @@ const Guestbook = () => {
                                         </div>
                                         <span style={{ color: '#666', fontSize: '0.8rem' }}>{new Date(item.created_at).toLocaleDateString('fr-FR')}</span>
                                     </div>
-                                    
+
                                     {/* NOUVEAU : Affichage du message ou du champ de modification */}
                                     {editingMessageId === item.id ? (
                                         <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <textarea 
-                                                rows="3" 
-                                                value={editMessageText} 
-                                                onChange={(e) => setEditMessageText(e.target.value)} 
-                                                style={{ background: '#111', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px', fontSize: '0.95rem', fontFamily: 'inherit' }} 
+                                            <textarea
+                                                rows="3"
+                                                value={editMessageText}
+                                                onChange={(e) => setEditMessageText(e.target.value)}
+                                                style={{ background: '#111', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px', fontSize: '0.95rem', fontFamily: 'inherit' }}
                                             />
                                             <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px' }}>
                                                 <button onClick={() => handleUpdateMessage(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '4px 12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Enregistrer</button>
@@ -369,7 +402,7 @@ const Guestbook = () => {
                                                 </span>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                     <span style={{ color: '#666', fontSize: '0.75rem' }}>{new Date(item.reply_date).toLocaleDateString('fr-FR')}</span>
-                                                    
+
                                                     {user && (
                                                         <div style={{ display: 'flex', gap: '6px' }}>
                                                             <button onClick={() => { setEditingReplyId(item.id); setEditReplyText(item.reply); }} title="Modifier la réponse" style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: 0 }}><Edit3 size={14} /></button>
