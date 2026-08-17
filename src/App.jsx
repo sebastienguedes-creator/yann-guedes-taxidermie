@@ -4,6 +4,7 @@ import Gallery from './components/Gallery';
 import About from './components/About';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import Guestbook from './components/Guestbook'; 
 
 // Import de la photo d'en-tête depuis vos assets
 import photoEnTete from './assets/images/Photo en-tête.jpg';
@@ -69,6 +70,8 @@ function App() {
             <Gallery />
 
             <About />
+
+            <Guestbook />
 
             <Contact />
           </main>

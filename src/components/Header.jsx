@@ -14,10 +14,11 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const allLinks = [
+const allLinks = [
     { name: 'Accueil', href: '#accueil' },
     { name: 'Galerie', href: '#galerie' },
     { name: "L'Atelier", href: '#atelier' },
+    { name: 'Livre d\'or', href: '#livredor' }, // <- Ajout ici
     { name: 'Contact', href: '#contact' },
   ];
 
