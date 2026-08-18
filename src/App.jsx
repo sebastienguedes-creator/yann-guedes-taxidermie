@@ -1,21 +1,61 @@
+/**
+ * ============================================================================
+ * FICHIER : App.jsx
+ * DESCRIPTION : Composant racine de l'application (Yann Guedes - Taxidermiste).
+ * OPTIMISATIONS : Réorganisation modulaire, commentaires détaillés (Zéro régression).
+ * ============================================================================
+ */
+
+import { useEffect } from 'react';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import Header from './components/Header';
 import Gallery from './components/Gallery';
 import About from './components/About';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import Guestbook from './components/Guestbook'; 
+import Guestbook from './components/Guestbook';
 
-// Import de la photo d'en-tête depuis vos assets
+// Import de la photo d'en-tête depuis les assets
 import photoEnTete from './assets/images/Photo en-tête.jpg';
 
 function App() {
-  // CONFIGURATION SEO : Remplace les crochets par les vraies infos
+  // --------------------------------------------------------------------------
+  // 1. CONFIGURATION & CONSTANTES
+  // --------------------------------------------------------------------------
   const LOCALISATION = "Oherville / Normandie";
 
+  // --------------------------------------------------------------------------
+  // 2. GESTION DES EFFETS (SCROLL SUR ANCRE D'URL)
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    // Si l'URL contient un # (comme #livredor) lors de l'arrivée sur le site
+    if (window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+
+      // Attente pour laisser le temps à React d'afficher la page
+      setTimeout(() => {
+        const targetElement = document.getElementById(id);
+        if (targetElement) {
+          const headerOffset = 90; // Décalage identique au Header
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300); // Délai de 300 millisecondes
+    }
+  }, []);
+
+  // --------------------------------------------------------------------------
+  // 3. RENDU PRINCIPAL
+  // --------------------------------------------------------------------------
   return (
     <HelmetProvider>
       <div>
+        {/* Balises métas SEO et OpenGraph */}
         <Helmet>
           <meta property="og:title" content="Yann Guedes | Taxidermiste d'Art" />
           <meta property="og:description" content="Découvrez le savoir-faire unique de Yann Guedes dans l'art de la naturalisation." />
@@ -26,11 +66,11 @@ function App() {
         </Helmet>
 
         <div id="accueil">
-
+          {/* En-tête de navigation */}
           <Header />
 
           <main>
-            {/* Intro */}
+            {/* Section Introduction / Héros */}
             <section className="hero-section">
               <span style={{
                 display: 'block',
@@ -48,7 +88,7 @@ function App() {
                 L'animal au naturel
               </h2>
 
-              {/* Conteneur de l'image */}
+              {/* Conteneur de l'image principale */}
               <div style={{
                 maxWidth: '1350px',
                 margin: '0 auto 35px auto',
@@ -67,18 +107,19 @@ function App() {
               </div>
             </section>
 
+            {/* Composants de la page principale */}
             <Gallery />
-
             <About />
-
             <Guestbook />
-
             <Contact />
           </main>
 
+          {/* Pied de page */}
           <Footer />
 
-          {/* RÈGLES MOBILE SUR MESURE */}
+          {/* ------------------------------------------------------------------ */}
+          {/* 4. STYLES RESPONSIVES ET RÈGLES MOBILES SUR MESURE */}
+          {/* ------------------------------------------------------------------ */}
           <style>{`
             /* Style Desktop par défaut */
             .hero-section {
@@ -100,7 +141,7 @@ function App() {
               }
 
               .hero-image {
-                height: 380px; /* Force une vraie hauteur généreuse */
+                height: 380px; /* Force une hauteur généreuse */
                 object-fit: cover; /* Remplit le bloc proprement sans déformer la photo */
                 object-position: center; /* Centre le sujet de la photo */
               }

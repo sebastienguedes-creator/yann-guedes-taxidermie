@@ -1,7 +1,26 @@
+/**
+ * ============================================================================
+ * FICHIER : Footer.jsx
+ * DESCRIPTION : Pied de page du site avec informations de copyright, 
+ *               crédits de réalisation, et modale d'affichage des mentions 
+ *               légales et de la politique de confidentialité.
+ * 
+ * OPTIMISATIONS (SEO & A11y) : 
+ * - Balisage sémantique <footer> avec attributs d'accessibilité.
+ * - Modale accessible aux normes WAI-ARIA (role="dialog", aria-modal="true", aria-labelledby).
+ * - Prise en charge de la fermeture de la modale via la touche 'Échap' (Escape).
+ * - Boutons explicites (type="button", aria-labels).
+ * 
+ * DÉPENDANCES : react (useState, useEffect)
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
 
 const Footer = () => {
-  const [modalContent, setModalContent] = useState(null);
+  // --------------------------------------------------------------------------
+  // 1. CONSTANTES ET DONNÉES ÉDITEUR
+  // --------------------------------------------------------------------------
   const currentYear = new Date().getFullYear();
 
   const INFOS_YANN = {
@@ -15,41 +34,124 @@ const Footer = () => {
     hebergeurInfos: "650 California St, San Francisco, CA 94108, USA"
   };
 
+  // --------------------------------------------------------------------------
+  // 2. ÉTATS ET EFFETS (LOGIQUE DE LA MODALE ET DU SCROLL)
+  // --------------------------------------------------------------------------
+  // Contenu de la modale active : 'mentions' | 'confidentialite' | null
+  const [modalContent, setModalContent] = useState(null);
+
+  /**
+   * Effet gérant :
+   * - Le verrouillage du défilement de la page lorsque la modale est ouverte.
+   * - La fermeture de la modale lors de l'appui sur la touche 'Échap'.
+   */
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && modalContent) {
+        setModalContent(null);
+      }
+    };
+
     if (modalContent) {
       document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
     } else {
       document.body.style.overflow = 'unset';
     }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [modalContent]);
 
+  // --------------------------------------------------------------------------
+  // 3. RENDU DU COMPOSANT
+  // --------------------------------------------------------------------------
   return (
-    <footer style={{ padding: '60px 20px 40px', textAlign: 'center', fontSize: '0.75rem' }}>
+    <footer 
+      style={{ padding: '60px 20px 40px', textAlign: 'center', fontSize: '0.75rem' }}
+      aria-label="Pied de page et informations légales"
+    >
+      {/* Copyright & Crédits de réalisation */}
       <div style={{ opacity: 0.6 }}>
         <p style={{ color: '#fff', margin: 0 }}>
           © {currentYear} {INFOS_YANN.nom} Taxidermiste. Tous droits réservés.
         </p>
         <p style={{ marginTop: '10px' }}>
-          Conception & Réalisation par <a href="TON_PORTFOLIO" target="_blank" rel="noopener noreferrer" style={{ color: '#D4AF37', textDecoration: 'none', fontWeight: '500' }}>Sébastien GUEDES</a>
+          Conception & Réalisation par{' '}
+          <a 
+            href="TON_PORTFOLIO" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            title="Visiter le site du concepteur Sébastien Guedes"
+            aria-label="Conception et réalisation par Sébastien GUEDES (ouvre un nouvel onglet)"
+            style={{ color: '#D4AF37', textDecoration: 'none', fontWeight: '500' }}
+          >
+            Sébastien GUEDES
+          </a>
         </p>
       </div>
 
+      {/* Liens de déclenchement des Modales Légales */}
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '15px', color: '#666' }}>
-        <button onClick={() => setModalContent('mentions')} style={linkButtonStyle}>Mentions Légales</button>
-        <span style={{ opacity: 0.3 }}>|</span>
-        <button onClick={() => setModalContent('confidentialite')} style={linkButtonStyle}>Confidentialité</button>
+        <button 
+          type="button"
+          onClick={() => setModalContent('mentions')} 
+          style={linkButtonStyle}
+          aria-label="Afficher les mentions légales"
+        >
+          Mentions Légales
+        </button>
+
+        <span style={{ opacity: 0.3 }} aria-hidden="true">|</span>
+
+        <button 
+          type="button"
+          onClick={() => setModalContent('confidentialite')} 
+          style={linkButtonStyle}
+          aria-label="Afficher la politique de confidentialité"
+        >
+          Confidentialité
+        </button>
       </div>
 
+      {/* ==================================================================
+          MODALE DE CONSULTATION (Mentions Légales / Confidentialité)
+          ================================================================== */}
       {modalContent && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+        <div 
+          style={modalOverlayStyle}
+          onClick={(e) => {
+            // Fermeture au clic sur l'arrière-plan (overlay)
+            if (e.target === e.currentTarget) setModalContent(null);
+          }}
+        >
+          <div 
+            style={modalContentStyle}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+          >
+            {/* En-tête de la modale */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid #333', paddingBottom: '15px' }}>
-              <h2 style={{ color: '#D4AF37', margin: 0, fontSize: '1.5rem', fontFamily: 'Cormorant Garamond, serif' }}>
+              <h2 
+                id="modal-title"
+                style={{ color: '#D4AF37', margin: 0, fontSize: '1.5rem', fontFamily: 'Cormorant Garamond, serif' }}
+              >
                 {modalContent === 'mentions' ? 'Mentions Légales' : 'Politique de Confidentialité'}
               </h2>
-              <button onClick={() => setModalContent(null)} style={closeButtonStyle}>Fermer ✕</button>
+              <button 
+                type="button"
+                onClick={() => setModalContent(null)} 
+                style={closeButtonStyle}
+                aria-label="Fermer la fenêtre modale"
+              >
+                Fermer ✕
+              </button>
             </div>
             
+            {/* Contenu textuel de la modale */}
             <div style={{ lineHeight: '1.8', color: '#ccc', fontSize: '0.9rem' }}>
               {modalContent === 'mentions' ? (
                 <>
@@ -80,7 +182,9 @@ const Footer = () => {
   );
 };
 
-// --- STYLES CORRIGÉS POUR OPACITÉ TOTALE ---
+// ============================================================================
+// STYLES INLINE (CONSTANTES CSS)
+// ============================================================================
 
 const linkButtonStyle = {
   background: 'none',

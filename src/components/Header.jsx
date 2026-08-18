@@ -1,10 +1,29 @@
+/**
+ * ============================================================================
+ * FICHIER : Header.jsx
+ * DESCRIPTION : Composant d'en-tête (Header) avec navigation sticky,
+ *               effet de réduction du logo au scroll et menu burger mobile.
+ * 
+ * OPTIMISATIONS (SEO & A11y) : 
+ * - Maintien du balisage <h1> caché (Screen-reader only) pour le SEO.
+ * - Ajout d'attributs ARIA (aria-expanded, aria-controls, aria-label).
+ * - Transformation de la modale mobile en balise sémantique <nav>.
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg';
 
 const Header = () => {
+  // --------------------------------------------------------------------------
+  // ÉTATS
+  // --------------------------------------------------------------------------
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // --------------------------------------------------------------------------
+  // EFFETS : Écouteur de scroll
+  // --------------------------------------------------------------------------
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -14,15 +33,20 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-const allLinks = [
+  // --------------------------------------------------------------------------
+  // DONNÉES : Liens de navigation
+  // --------------------------------------------------------------------------
+  const allLinks = [
     { name: 'Accueil', href: '#accueil' },
     { name: 'Galerie', href: '#galerie' },
     { name: "L'Atelier", href: '#atelier' },
-    { name: 'Livre d\'or', href: '#livredor' }, // <- Ajout ici
+    { name: 'Livre d\'or', href: '#livredor' },
     { name: 'Contact', href: '#contact' },
   ];
 
-  // DÉFILEMENT FLUIDE & AGRANDISSEMENT DU LOGO AU CLIC
+  // --------------------------------------------------------------------------
+  // HANDLERS : Défilement fluide & interactions
+  // --------------------------------------------------------------------------
   const handleNavClick = (e, href) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
@@ -43,6 +67,9 @@ const allLinks = [
     }
   };
 
+  // --------------------------------------------------------------------------
+  // RENDU
+  // --------------------------------------------------------------------------
   return (
     <header style={{
       position: 'fixed',
@@ -61,14 +88,18 @@ const allLinks = [
       padding: '0 25px',
       transition: 'background-color 0.4s ease'
     }}>
+      
+      {/* 
+        TITRE H1 MASQUÉ VISUELLEMENT (Optimisation SEO & Lecteurs d'écran)
+      */}
       <h1 style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', border: 0 }}>
         Yann Guedes - Taxidermiste d'Art en Normandie
       </h1>
 
       {/* ESPACE VIDE GAUCHE POUR ÉQUILIBRER LE HEADER */}
-      <div className="nav-side" style={{ width: '150px' }}></div>
+      <div className="nav-side" style={{ width: '150px' }} aria-hidden="true"></div>
 
-      {/* LOGO DYNAMIQUE (Reduit au scroll, grandit au clic) */}
+      {/* LOGO DYNAMIQUE (Réduit au scroll, grandit au clic) */}
       <div style={{
         position: 'absolute',
         left: '50%',
@@ -82,7 +113,12 @@ const allLinks = [
         transformOrigin: 'top center',
         zIndex: 10
       }}>
-        <a href="#accueil" onClick={(e) => handleNavClick(e, '#accueil')} style={{ display: 'block' }}>
+        <a 
+          href="#accueil" 
+          onClick={(e) => handleNavClick(e, '#accueil')} 
+          style={{ display: 'block' }}
+          aria-label="Retour à l'accueil du site"
+        >
           <img
             src={logo}
             alt="Yann Guedes Taxidermiste - 06 13 68 89 12"
@@ -97,7 +133,7 @@ const allLinks = [
       </div>
 
       {/* TOUS LES LIENS DU MENU DESKTOP À DROITE */}
-      <nav className="nav-side">
+      <nav className="nav-side" aria-label="Navigation principale">
         <ul style={{ display: 'flex', gap: '35px', listStyle: 'none', margin: 0, padding: 0 }}>
           {allLinks.map((link) => (
             <li key={link.name}>
@@ -117,14 +153,20 @@ const allLinks = [
       <button
         className="mobile-burger-btn"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label="Menu de navigation"
+        aria-label={isMobileMenuOpen ? "Fermer le menu de navigation" : "Ouvrir le menu de navigation"}
+        aria-expanded={isMobileMenuOpen}
+        aria-controls="mobile-menu"
       >
         {isMobileMenuOpen ? '✕' : '☰'}
       </button>
 
-      {/* RIDEAU MENU MOBILE */}
+      {/* RIDEAU MENU MOBILE (Sémantique <nav> au lieu de <div>) */}
       {isMobileMenuOpen && (
-        <div className="mobile-overlay">
+        <nav 
+          id="mobile-menu" 
+          className="mobile-overlay"
+          aria-label="Navigation mobile"
+        >
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, textAlign: 'center' }}>
             {allLinks.map((link) => (
               <li key={link.name} style={{ margin: '30px 0' }}>
@@ -138,9 +180,10 @@ const allLinks = [
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
       )}
 
+      {/* FEUILLE DE STYLES INTÉGRÉE (Zéro Régression Conservée) */}
       <style>{`
         .nav-link {
           color: #fff;

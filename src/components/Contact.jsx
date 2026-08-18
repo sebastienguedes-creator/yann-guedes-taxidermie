@@ -1,54 +1,148 @@
+/**
+ * ============================================================================
+ * FICHIER : Contact.jsx
+ * DESCRIPTION : Section de contact et formulaire de demande de devis.
+ *               Propose les coordonnées directes (téléphone, email, adresse)
+ *               ainsi qu'un formulaire pour les projets de naturalisation.
+ * 
+ * OPTIMISATIONS (SEO & A11y) : 
+ * - Accessibilité du formulaire (aria-labels, auto-complétion, attributs name).
+ * - Liens d'action directs cliquables et explicites (tel:, mailto:).
+ * - Masquage des icônes décoratives pour les lecteurs d'écran (aria-hidden).
+ * - Logo optimisé SEO avec balise alt descriptive.
+ * 
+ * DÉPENDANCES : lucide-react, logo.svg
+ * ============================================================================
+ */
+
 import { Mail, Phone, MapPin } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 const Contact = () => {
     return (
-        <section id="contact" style={{ padding: '60px 20px', backgroundColor: '#050505', marginTop: '40px' }}>
+        <section 
+            id="contact" 
+            aria-label="Section Contact et Demande de devis" 
+            style={{ padding: '60px 20px', backgroundColor: '#050505', marginTop: '40px' }}
+        >
 
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                <h2 className="gold-text" style={{ fontSize: '2rem', marginBottom: '40px' }}>Contact & Devis</h2>
+                
+                {/* Titre de section */}
+                <h2 className="gold-text" style={{ fontSize: '2rem', marginBottom: '40px' }}>
+                    Contact & Devis
+                </h2>
 
                 <div className="contact-grid">
-                    {/* Infos directes cliquables pour mobile */}
+                    
+                    {/* ======================================================
+                        1. INFORMATIONS DE CONTACT DIRECTES
+                        ====================================================== */}
                     <div className="contact-info">
+                        
+                        {/* Téléphone */}
                         <div className="info-item">
-                            <Phone size={20} color="#D4AF37" />
-                            <a href="tel:0613688912" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
+                            <Phone size={20} color="#D4AF37" aria-hidden="true" />
+                            <a 
+                                href="tel:0613688912" 
+                                aria-label="Appeler l'atelier au 06 13 68 89 12"
+                                title="Appeler l'atelier de taxidermie"
+                                style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}
+                            >
                                 06 13 68 89 12
                             </a>
                         </div>
+
+                        {/* Email */}
                         <div className="info-item">
-                            <Mail size={20} color="#D4AF37" />
-                            <a href="mailto:yann.guedes76@gmail.com" style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}>
+                            <Mail size={20} color="#D4AF37" aria-hidden="true" />
+                            <a 
+                                href="mailto:yann.guedes76@gmail.com" 
+                                aria-label="Envoyer un e-mail à yann.guedes76@gmail.com"
+                                title="Contacter l'atelier par e-mail"
+                                style={{ color: '#d1d1d1', textDecoration: 'none', transition: 'color 0.2s' }}
+                            >
                                 yann.guedes76@gmail.com
                             </a>
                         </div>
                         
-                        {/* Bloc Adresse + Logo Desktop */}
+                        {/* Adresse + Logo Desktop */}
                         <div className="info-item address-block" style={{ color: '#d1d1d1', flexDirection: 'column', alignItems: 'flex-start', gap: '0' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <MapPin size={20} color="#D4AF37" />
+                                <MapPin size={20} color="#D4AF37" aria-hidden="true" />
                                 <span>Atelier à Oherville, Normandie</span>
                             </div>
 
-                            {/* Logo qui trône fièrement uniquement sur PC */}
+                            {/* Logo affiché uniquement sur PC (via CSS) */}
                             <div className="desktop-logo-wrapper">
-                                <img src={logo} alt="Yann Guedes - Taxidermiste" />
+                                <img 
+                                    src={logo} 
+                                    alt="Yann Guedes - Artisan Taxidermiste à Oherville Normandie" 
+                                    title="Yann Guedes Taxidermie"
+                                />
                             </div>
                         </div>
+
                     </div>
 
-                    {/* Formulaire avec champ Téléphone ajouté */}
-                    <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
-                        <input type="text" placeholder="Votre Nom" required />
-                        <input type="email" placeholder="Votre Email" required />
-                        <input type="tel" placeholder="Votre Téléphone" />
-                        <textarea placeholder="Décrivez votre projet (espèce, type de pose...)" rows="5" required></textarea>
-                        <button type="submit">Envoyer la demande</button>
+                    {/* ======================================================
+                        2. FORMULAIRE DE CONTACT ET DEVIS
+                        ====================================================== */}
+                    <form 
+                        className="contact-form" 
+                        onSubmit={(e) => e.preventDefault()}
+                        aria-label="Formulaire de demande de devis"
+                    >
+                        {/* Nom complet */}
+                        <input 
+                            type="text" 
+                            name="name"
+                            placeholder="Votre Nom" 
+                            aria-label="Votre Nom"
+                            autoComplete="name"
+                            required 
+                        />
+
+                        {/* Adresse Email */}
+                        <input 
+                            type="email" 
+                            name="email"
+                            placeholder="Votre Email" 
+                            aria-label="Votre Adresse Email"
+                            autoComplete="email"
+                            required 
+                        />
+
+                        {/* Numéro de Téléphone */}
+                        <input 
+                            type="tel" 
+                            name="phone"
+                            placeholder="Votre Téléphone" 
+                            aria-label="Votre Numéro de Téléphone"
+                            autoComplete="tel"
+                        />
+
+                        {/* Description du projet */}
+                        <textarea 
+                            name="message"
+                            placeholder="Décrivez votre projet (espèce, type de pose...)" 
+                            aria-label="Description de votre projet"
+                            rows="5" 
+                            required
+                        ></textarea>
+
+                        {/* Bouton d'envoi */}
+                        <button type="submit" aria-label="Envoyer la demande de devis">
+                            Envoyer la demande
+                        </button>
                     </form>
+
                 </div>
             </div>
 
+            {/* ==============================================================
+                3. STYLES CSS LOCAUX
+                ============================================================== */}
             <style>{`
         .contact-grid {
           display: grid;

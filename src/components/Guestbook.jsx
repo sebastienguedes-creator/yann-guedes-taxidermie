@@ -1,37 +1,89 @@
+/**
+ * ============================================================================
+ * FICHIER : Guestbook.jsx
+ * DESCRIPTION : Composant de Livre d'Or permettant aux clients de laisser un
+ *               avis (Note, Message) et à l'artisan (Admin) de modérer, 
+ *               modifier et répondre aux avis via Supabase.
+ * 
+ * OPTIMISATIONS (SEO & A11y) : 
+ * - Balisage sémantique (<article> pour les avis).
+ * - Modale de connexion admin accessible (WAI-ARIA, touche Échap).
+ * - Attributs aria-label sur les champs et boutons iconographiques.
+ * - Retours d'état (succès/chargement) annoncés via aria-live="polite".
+ * 
+ * DÉPENDANCES : react, lucide-react, ../utils/supabaseClient
+ * ============================================================================
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, CheckCircle, Loader2, Star, CornerDownRight, Trash2, Edit3, ShieldCheck } from 'lucide-react';
-// Assurez-vous que le chemin vers votre client Supabase est correct
 import { supabase } from '../utils/supabaseClient';
 
+// --------------------------------------------------------------------------
+// CONSTANTES
+// --------------------------------------------------------------------------
+const DEPARTMENTS = [
+    { code: '01', name: '01 - Ain' }, { code: '02', name: '02 - Aisne' }, { code: '03', name: '03 - Allier' }, { code: '04', name: '04 - Alpes-de-Haute-Provence' }, { code: '05', name: '05 - Hautes-Alpes' },
+    { code: '06', name: '06 - Alpes-Maritimes' }, { code: '07', name: '07 - Ardèche' }, { code: '08', name: '08 - Ardennes' }, { code: '09', name: '09 - Ariège' }, { code: '10', name: '10 - Aube' },
+    { code: '11', name: '11 - Aude' }, { code: '12', name: '12 - Aveyron' }, { code: '13', name: '13 - Bouches-du-Rhône' }, { code: '14', name: '14 - Calvados' }, { code: '15', name: '15 - Cantal' },
+    { code: '16', name: '16 - Charente' }, { code: '17', name: '17 - Charente-Maritime' }, { code: '18', name: '18 - Cher' }, { code: '19', name: '19 - Corrèze' }, { code: '2A', name: '2A - Corse-du-Sud' },
+    { code: '2B', name: '2B - Haute-Corse' }, { code: '21', name: '21 - Côte-d\'Or' }, { code: '22', name: '22 - Côtes-d\'Armor' }, { code: '23', name: '23 - Creuse' }, { code: '24', name: '24 - Dordogne' },
+    { code: '25', name: '25 - Doubs' }, { code: '26', name: '26 - Drôme' }, { code: '27', name: '27 - Eure' }, { code: '28', name: '28 - Eure-et-Loir' }, { code: '29', name: '29 - Finistère' },
+    { code: '30', name: '30 - Gard' }, { code: '31', name: '31 - Haute-Garonne' }, { code: '32', name: '32 - Gers' }, { code: '33', name: '33 - Gironde' }, { code: '34', name: '34 - Hérault' },
+    { code: '35', name: '35 - Ille-et-Vilaine' }, { code: '36', name: '36 - Indre' }, { code: '37', name: '37 - Indre-et-Loire' }, { code: '38', name: '38 - Isère' }, { code: '39', name: '39 - Jura' },
+    { code: '40', name: '40 - Landes' }, { code: '41', name: '41 - Loir-et-Cher' }, { code: '42', name: '42 - Loire' }, { code: '43', name: '43 - Haute-Loire' }, { code: '44', name: '44 - Loire-Atlantique' },
+    { code: '45', name: '45 - Loiret' }, { code: '46', name: '46 - Lot' }, { code: '47', name: '47 - Lot-et-Garonne' }, { code: '48', name: '48 - Lozère' }, { code: '49', name: '49 - Maine-et-Loire' },
+    { code: '50', name: '50 - Manche' }, { code: '51', name: '51 - Marne' }, { code: '52', name: '52 - Haute-Marne' }, { code: '53', name: '53 - Mayenne' }, { code: '54', name: '54 - Meurthe-et-Moselle' },
+    { code: '55', name: '55 - Meuse' }, { code: '56', name: '56 - Morbihan' }, { code: '57', name: '57 - Moselle' }, { code: '58', name: '58 - Nièvre' }, { code: '59', name: '59 - Nord' },
+    { code: '60', name: '60 - Oise' }, { code: '61', name: '61 - Orne' }, { code: '62', name: '62 - Pas-de-Calais' }, { code: '63', name: '63 - Puy-de-Dôme' }, { code: '64', name: '64 - Pyrénées-Atlantiques' },
+    { code: '65', name: '65 - Hautes-Pyrénées' }, { code: '66', name: '66 - Pyrénées-Orientales' }, { code: '67', name: '67 - Bas-Rhin' }, { code: '68', name: '68 - Haut-Rhin' }, { code: '69', name: '69 - Rhône' },
+    { code: '70', name: '70 - Haute-Saône' }, { code: '71', name: '71 - Saône-et-Loire' }, { code: '72', name: '72 - Sarthe' }, { code: '73', name: '73 - Savoie' }, { code: '74', name: '74 - Haute-Savoie' },
+    { code: '75', name: '75 - Paris' }, { code: '76', name: '76 - Seine-Maritime' }, { code: '77', name: '77 - Seine-et-Marne' }, { code: '78', name: '78 - Yvelines' }, { code: '79', name: '79 - Deux-Sèvres' },
+    { code: '80', name: '80 - Somme' }, { code: '81', name: '81 - Tarn' }, { code: '82', name: '82 - Tarn-et-Garonne' }, { code: '83', name: '83 - Var' }, { code: '84', name: '84 - Vaucluse' },
+    { code: '85', name: '85 - Vendée' }, { code: '86', name: '86 - Vienne' }, { code: '87', name: '87 - Haute-Vienne' }, { code: '88', name: '88 - Vosges' }, { code: '89', name: '89 - Yonne' },
+    { code: '90', name: '90 - Territoire de Belfort' }, { code: '91', name: '91 - Essonne' }, { code: '92', name: '92 - Hauts-de-Seine' }, { code: '93', name: '93 - Seine-Saint-Denis' }, { code: '94', name: '94 - Val-de-Marne' },
+    { code: '95', name: '95 - Val-d\'Oise' }, { code: '971', name: '971 - Guadeloupe' }, { code: '972', name: '972 - Martinique' }, { code: '973', name: '973 - Guyane' }, { code: '974', name: '974 - La Réunion' }, { code: '976', name: '976 - Mayotte' }
+];
+
 const Guestbook = () => {
+    // --------------------------------------------------------------------------
+    // ÉTATS : MESSAGES & FORMULAIRE CLIENT
+    // --------------------------------------------------------------------------
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    // États pour l'authentification Admin
+    const [form, setForm] = useState({ firstName: '', lastName: '', city: '', message: '', rating: 5 });
+    const [hoverRating, setHoverRating] = useState(0);
+
+    // --------------------------------------------------------------------------
+    // ÉTATS : AUTHENTIFICATION ADMIN
+    // --------------------------------------------------------------------------
     const [user, setUser] = useState(null);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
 
-    // Formulaire d'ajout client
-    const [form, setForm] = useState({ firstName: '', lastName: '', city: '', message: '', rating: 5 });
-    const [hoverRating, setHoverRating] = useState(0);
-
-    // États pour les réponses artisan
+    // --------------------------------------------------------------------------
+    // ÉTATS : MODÉRATION ADMIN (MODIFICATION & RÉPONSE)
+    // --------------------------------------------------------------------------
     const [replyingTo, setReplyTo] = useState(null);
     const [replyText, setReplyText] = useState('');
     const [editingReplyId, setEditingReplyId] = useState(null);
     const [editReplyText, setEditReplyText] = useState('');
 
-    // NOUVEAU : États pour la modification du message client par l'admin
     const [editingMessageId, setEditingMessageId] = useState(null);
-    const [editMessageText, setEditMessageText] = useState('');
+    const [editFormData, setEditFormData] = useState({ first_name: '', last_name: '', city: '', message: '', rating: 5 });
 
+    // Chronomètre pour l'appui long sur mobile (Connexion secrète)
+    const pressTimer = useRef(null);
+
+    // --------------------------------------------------------------------------
+    // EFFETS
+    // --------------------------------------------------------------------------
     useEffect(() => {
-        // Initialisation garantie au rechargement de la page
         const initSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user || null);
@@ -40,30 +92,37 @@ const Guestbook = () => {
 
         initSession();
 
-        // Écoute uniquement des vrais changements d'état (connexion/déconnexion)
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
                 setUser(session?.user || null);
-                setTimeout(() => {
-                    fetchMessages();
-                }, 50);
+                setTimeout(() => fetchMessages(), 50);
             }
         });
 
         return () => {
             authListener.subscription.unsubscribe();
+            if (pressTimer.current) clearTimeout(pressTimer.current);
         };
     }, []);
 
-    // --- CONNEXION / DÉCONNEXION ---
+    // Fermeture de la modale de connexion avec la touche Échap
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && showLoginModal) setShowLoginModal(false);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [showLoginModal]);
 
+    // --------------------------------------------------------------------------
+    // HANDLERS : AUTHENTIFICATION SECRÈTE
+    // --------------------------------------------------------------------------
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoginError('');
         try {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
-
             setShowLoginModal(false);
             setEmail('');
             setPassword('');
@@ -73,43 +132,25 @@ const Guestbook = () => {
         }
     };
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-    };
-
-    // Chronomètre pour l'appui long sur mobile
-    const pressTimer = useRef(null);
+    const handleLogout = async () => await supabase.auth.signOut();
 
     const handleTouchStart = () => {
-        // On démarre un chrono de 1.5 seconde
         pressTimer.current = setTimeout(() => {
-            if (user) {
-                handleLogout();
-            } else {
-                setShowLoginModal(true);
-            }
-        }, 1500); // 1500 millisecondes = 1,5 seconde
+            user ? handleLogout() : setShowLoginModal(true);
+        }, 1500);
     };
 
     const handleTouchEnd = () => {
-        // Si on relâche le doigt (ou si on glisse) avant la fin du chrono, on annule l'action
-        if (pressTimer.current) {
-            clearTimeout(pressTimer.current);
-        }
+        if (pressTimer.current) clearTimeout(pressTimer.current);
     };
-
-
 
     const handleTitleDoubleClick = () => {
-        if (user) {
-            handleLogout();
-        } else {
-            setShowLoginModal(true);
-        }
+        user ? handleLogout() : setShowLoginModal(true);
     };
 
-    // --- GESTION DES MESSAGES (CRUD BDD) ---
-
+    // --------------------------------------------------------------------------
+    // HANDLERS : CRUD MESSAGES
+    // --------------------------------------------------------------------------
     const fetchMessages = async () => {
         setLoading(true);
         try {
@@ -131,6 +172,29 @@ const Guestbook = () => {
         e.preventDefault();
         setSubmitting(true);
 
+        // 1. Envoi immédiat à Make
+        // --------------------------------------------------------------------
+        // COMMENT ACCÉDER À MAKE ET MODIFIER LE DESTINATAIRE / EXPÉDITEUR :
+        // 1. Connectez-vous sur votre compte Make (https://www.make.com).
+        // 2. Ouvrez le scénario correspondant à ce webhook.
+        // 3. Cliquez sur le module d'envoi d'e-mail (ex: Gmail, Sendinblue ou Email) 
+        //    situé après le module Webhook pour modifier :
+        //    - Le destinataire : dans le champ "To" (À).
+        //    - L'expéditeur : dans les paramètres de connexion ou le champ dédié du module.
+        // --------------------------------------------------------------------
+        fetch('https://hook.eu1.make.com/5d2u9g5mynkywwbttd6a5950bujiu8oi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: form.firstName,
+                last_name: form.lastName,
+                city: form.city,
+                message: form.message,
+                rating: form.rating
+            })
+        }).catch(e => console.error('Erreur webhook Make:', e));
+
+        // 2. Sauvegarde Supabase
         try {
             const { error } = await supabase.from('guestbook').insert([{
                 first_name: form.firstName,
@@ -153,15 +217,13 @@ const Guestbook = () => {
         }
     };
 
-    // --- FONCTIONS ADMINISTRATEUR ---
-
     const handleApproveMessage = async (id) => {
         try {
             const { error } = await supabase.from('guestbook').update({ approved: true }).eq('id', id);
             if (error) throw error;
             setMessages(messages.map(msg => msg.id === id ? { ...msg, approved: true } : msg));
         } catch (err) {
-            console.error('Erreur lors de la validation:', err);
+            console.error('Erreur validation:', err);
         }
     };
 
@@ -172,24 +234,34 @@ const Guestbook = () => {
             if (error) throw error;
             setMessages(messages.filter(msg => msg.id !== id));
         } catch (err) {
-            console.error('Erreur suppression avis:', err);
+            console.error('Erreur suppression:', err);
         }
     };
 
-    // NOUVEAU : Modifier un avis client
     const handleUpdateMessage = async (id) => {
-        if (!editMessageText.trim()) return;
+        if (!editFormData.message.trim()) return;
         try {
-            const { error } = await supabase.from('guestbook').update({ message: editMessageText }).eq('id', id);
+            const item = messages.find(m => m.id === id);
+            const { error } = await supabase.from('guestbook').update({
+                first_name: editFormData.first_name,
+                last_name: editFormData.last_name,
+                city: editFormData.city,
+                message: editFormData.message,
+                rating: editFormData.rating,
+                created_at: editFormData.created_at ? new Date(editFormData.created_at).toISOString() : item.created_at
+            }).eq('id', id);
+
             if (error) throw error;
-            setMessages(messages.map(msg => msg.id === id ? { ...msg, message: editMessageText } : msg));
+            setMessages(messages.map(msg => msg.id === id ? { ...msg, ...editFormData } : msg));
             setEditingMessageId(null);
-            setEditMessageText('');
         } catch (err) {
-            console.error('Erreur lors de la modification de l\'avis:', err);
+            console.error('Erreur modification:', err);
         }
     };
 
+    // --------------------------------------------------------------------------
+    // HANDLERS : RÉPONSES ARTISAN
+    // --------------------------------------------------------------------------
     const handleAdminReply = async (id) => {
         if (!replyText.trim()) return;
         const now = new Date().toISOString();
@@ -228,21 +300,32 @@ const Guestbook = () => {
         }
     };
 
-    // Filtrage : le public voit uniquement les messages validés, l'admin voit tout.
     const displayedMessages = user ? messages : messages.filter(msg => msg.approved);
 
+    // --------------------------------------------------------------------------
+    // RENDU DU COMPOSANT
+    // --------------------------------------------------------------------------
     return (
-        <section id="livredor" style={{ padding: '80px 20px', backgroundColor: '#0a0a0a', borderTop: '1px solid rgba(212, 175, 55, 0.15)', position: 'relative' }}>
+        <section id="livredor" aria-labelledby="guestbook-title" style={{ padding: '80px 20px', backgroundColor: '#0a0a0a', borderTop: '1px solid rgba(212, 175, 55, 0.15)', position: 'relative' }}>
 
-            {/* Modal de Connexion Secret */}
+            {/* MODALE DE CONNEXION ADMIN SECRÈTE */}
             {showLoginModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+                <div 
+                    role="dialog" 
+                    aria-modal="true" 
+                    aria-labelledby="modal-login-title"
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}
+                >
                     <div style={{ background: '#141414', padding: '30px', borderRadius: '12px', border: '1px solid #333', width: '320px' }}>
-                        <h3 style={{ color: '#fff', marginBottom: '15px', fontSize: '1.1rem' }}>Connexion Artisan</h3>
+                        <h3 id="modal-login-title" style={{ color: '#fff', marginBottom: '15px', fontSize: '1.1rem' }}>Connexion Artisan</h3>
                         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px' }} />
-                            <input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px' }} />
-                            {loginError && <p style={{ color: '#e74c3c', fontSize: '0.8rem', margin: 0 }}>{loginError}</p>}
+                            <input type="email" aria-label="Adresse email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px' }} />
+                            <input type="password" aria-label="Mot de passe" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px' }} />
+                            
+                            <div aria-live="polite">
+                                {loginError && <p style={{ color: '#e74c3c', fontSize: '0.8rem', margin: 0 }}>{loginError}</p>}
+                            </div>
+
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                                 <button type="button" onClick={() => setShowLoginModal(false)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '8px', flex: 1, cursor: 'pointer', borderRadius: '4px' }}>Fermer</button>
                                 <button type="submit" style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '8px', flex: 1, fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Valider</button>
@@ -258,14 +341,15 @@ const Guestbook = () => {
                         Témoignages & Avis
                     </span>
                     <h2
+                        id="guestbook-title"
                         className="gold-text"
                         style={{
                             fontSize: '2.5rem',
                             marginTop: '10px',
                             cursor: 'default',
                             userSelect: 'none',
-                            WebkitUserSelect: 'none', // Empêche la sélection de texte sur Safari/iOS
-                            WebkitTouchCallout: 'none' // Empêche le menu natif "Copier/Partager" d'apparaître
+                            WebkitUserSelect: 'none',
+                            WebkitTouchCallout: 'none'
                         }}
                         onDoubleClick={handleTitleDoubleClick}
                         onTouchStart={handleTouchStart}
@@ -281,110 +365,186 @@ const Guestbook = () => {
 
                 <div className="guestbook-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', alignItems: 'start' }}>
 
-                    {/* FORMULAIRE CLIENT */}
+                    {/* ==================================================================
+                        FORMULAIRE D'AJOUT D'AVIS CLIENT
+                        ================================================================== */}
                     <div style={{ background: '#141414', padding: '30px', borderRadius: '12px', border: '1px solid #262626' }}>
                         <h3 style={{ color: '#fff', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <MessageSquare size={20} color="#D4AF37" /> Laisser un mot
+                            <MessageSquare size={20} color="#D4AF37" aria-hidden="true" /> Laisser un mot
                         </h3>
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                <input type="text" placeholder="Prénom" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
-                                <input type="text" placeholder="Nom" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
+                                <input type="text" aria-label="Votre prénom" placeholder="Prénom" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
+                                <input type="text" aria-label="Votre nom" placeholder="Nom" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }} />
                             </div>
                             <span style={{ color: '#777', fontSize: '0.75rem', marginTop: '-8px' }}>* Le nom ne sera pas publié et restera confidentiel.</span>
 
-                            <input type="text" placeholder="Votre Ville (ex: Rouen)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px' }} />
+                            <select
+                                aria-label="Sélectionnez votre département"
+                                value={form.city}
+                                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                                required
+                                style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: form.city ? 'white' : '#777', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }}
+                            >
+                                <option value="" disabled>Sélectionnez votre département</option>
+                                {DEPARTMENTS.map((dept) => (
+                                    <option key={dept.code} value={dept.code} style={{ background: '#1c1c1c', color: 'white' }}>
+                                        {dept.name}
+                                    </option>
+                                ))}
+                            </select>
 
+                            {/* Système de notation par étoiles */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: '#1c1c1c', border: '1px solid #333', padding: '12px', borderRadius: '6px' }}>
-                                <label style={{ color: '#aaa', fontSize: '0.85rem' }}>Votre note :</label>
-                                <div style={{ display: 'flex', gap: '5px' }}>
+                                <span style={{ color: '#aaa', fontSize: '0.85rem' }} id="rating-label">Votre note :</span>
+                                <div role="radiogroup" aria-labelledby="rating-label" style={{ display: 'flex', gap: '5px' }}>
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                        <button type="button" key={star} onClick={() => setForm({ ...form, rating: star })} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                        <button 
+                                            type="button" 
+                                            role="radio"
+                                            aria-checked={form.rating === star}
+                                            aria-label={`Noter ${star} étoile${star > 1 ? 's' : ''}`}
+                                            key={star} 
+                                            onClick={() => setForm({ ...form, rating: star })} 
+                                            onMouseEnter={() => setHoverRating(star)} 
+                                            onMouseLeave={() => setHoverRating(0)} 
+                                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                                        >
                                             <Star size={22} fill={(hoverRating || form.rating) >= star ? '#D4AF37' : 'transparent'} color={(hoverRating || form.rating) >= star ? '#D4AF37' : '#555'} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <textarea placeholder="Votre message..." rows="4" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', fontFamily: 'inherit' }}></textarea>
+                            <textarea aria-label="Votre message" placeholder="Votre message..." rows="4" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required style={{ background: '#1c1c1c', border: '1px solid #333', padding: '12px', color: 'white', borderRadius: '6px', fontFamily: 'inherit' }}></textarea>
 
                             <button type="submit" disabled={submitting} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '12px', fontWeight: 'bold', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                {submitting ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} Publier mon avis
+                                {submitting ? <Loader2 className="animate-spin" size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />} 
+                                Publier mon avis
                             </button>
 
-                            {success && <p style={{ color: '#2ecc71', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px' }}><CheckCircle size={16} /> Merci ! Votre avis a été envoyé et sera visible après validation.</p>}
+                            <div aria-live="polite">
+                                {success && <p style={{ color: '#2ecc71', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px' }}><CheckCircle size={16} /> Merci ! Votre avis a été envoyé et sera visible après validation.</p>}
+                            </div>
                         </form>
                     </div>
 
-                    {/* LISTE DES AVIS */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '650px', overflowY: 'auto', paddingRight: '5px' }}>
-                        {loading ? (
-                            <p style={{ color: '#888', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                                <Loader2 className="animate-spin" size={20} /> Chargement des témoignages...
-                            </p>
-                        ) : displayedMessages.length === 0 ? (
+                    {/* ==================================================================
+                        LISTE DES AVIS (AFFICHAGE ET MODÉRATION)
+                        ================================================================== */}
+                    <div 
+                        role="region" 
+                        aria-label="Liste des témoignages"
+                        style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '650px', overflowY: 'auto', paddingRight: '5px' }}
+                    >
+                        <div aria-live="polite" style={{ width: '100%' }}>
+                            {loading && (
+                                <p style={{ color: '#888', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                                    <Loader2 className="animate-spin" size={20} /> Chargement des témoignages...
+                                </p>
+                            )}
+                        </div>
+
+                        {!loading && displayedMessages.length === 0 ? (
                             <p style={{ color: '#888', textAlign: 'center' }}>Aucun témoignage pour le moment.</p>
                         ) : (
                             displayedMessages.map((item) => (
-                                <div key={item.id} style={{ background: '#141414', padding: '20px', borderRadius: '12px', border: item.approved ? '1px solid #222' : '1px dashed #D4AF37', position: 'relative' }}>
-
-                                    {/* NOUVEAU : Options Admin (Modifier et Supprimer l'avis) */}
-                                    {user && (
-                                        <div style={{ position: 'absolute', top: '15px', right: '15px', display: 'flex', gap: '8px' }}>
-                                            <button
-                                                onClick={() => { setEditingMessageId(item.id); setEditMessageText(item.message); }}
-                                                title="Modifier cet avis"
-                                                style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: '4px' }}
-                                            >
-                                                <Edit3 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteMessage(item.id)}
-                                                title="Supprimer cet avis"
-                                                style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '4px' }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    )}
+                                <article key={item.id} style={{ background: '#141414', padding: '20px', borderRadius: '12px', border: item.approved ? '1px solid #222' : '1px dashed #D4AF37', position: 'relative' }}>
 
                                     {/* Option Admin : Valider l'avis */}
                                     {user && !item.approved && (
-                                        <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(212, 175, 55, 0.1)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
-                                            <span style={{ color: '#D4AF37', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase' }}>En attente de validation</span>
-                                            <button onClick={() => handleApproveMessage(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '3px 8px', fontSize: '0.75rem', fontWeight: 'bold', borderRadius: '3px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <ShieldCheck size={14} /> Valider l'avis
+                                        <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(212, 175, 55, 0.15)', padding: '10px 14px', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.4)' }}>
+                                            <span style={{ color: '#D4AF37', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>En attente</span>
+                                            <button type="button" onClick={() => handleApproveMessage(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '6px 12px', fontSize: '0.8rem', fontWeight: 'bold', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <ShieldCheck size={16} aria-hidden="true" /> Valider l'avis
                                             </button>
                                         </div>
                                     )}
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', paddingRight: user ? '60px' : '0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                        {/* Infos client à gauche */}
                                         <div>
                                             <h4 style={{ color: '#fff', fontSize: '1rem', margin: 0 }}>
-                                                {item.first_name} {item.city && <span style={{ color: '#D4AF37', fontWeight: 'normal', fontSize: '0.85rem' }}>({item.city})</span>}
+                                               {item.first_name} {item.last_name ? `${item.last_name.charAt(0).toUpperCase()}.` : ''} {item.city && <span style={{ color: '#D4AF37', fontWeight: 'normal', fontSize: '0.85rem' }}>({item.city})</span>}
                                             </h4>
-                                            <div style={{ display: 'flex', gap: '3px', marginTop: '4px' }}>
+                                            <div style={{ display: 'flex', gap: '3px', marginTop: '4px' }} aria-label={`Note de ${item.rating} sur 5`}>
                                                 {[1, 2, 3, 4, 5].map((s) => (
-                                                    <Star key={s} size={14} fill={item.rating >= s ? '#D4AF37' : 'transparent'} color={item.rating >= s ? '#D4AF37' : '#444'} />
+                                                    <Star key={s} size={14} fill={item.rating >= s ? '#D4AF37' : 'transparent'} color={item.rating >= s ? '#D4AF37' : '#444'} aria-hidden="true" />
                                                 ))}
                                             </div>
                                         </div>
-                                        <span style={{ color: '#666', fontSize: '0.8rem' }}>{new Date(item.created_at).toLocaleDateString('fr-FR')}</span>
+
+                                        {/* Colonne de droite : Date et boutons admin */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                                            <time dateTime={item.created_at} style={{ color: '#666', fontSize: '0.8rem' }}>
+                                                {new Date(item.created_at).toLocaleDateString('fr-FR')}
+                                            </time>
+
+                                            {user && (
+                                                <div style={{ display: 'flex', gap: '8px', background: '#1a1a1a', padding: '4px 8px', borderRadius: '6px', border: '1px solid #333' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setEditingMessageId(item.id);
+                                                            setEditFormData({
+                                                                first_name: item.first_name || '', last_name: item.last_name || '', city: item.city || '', message: item.message || '', rating: item.rating || 5, created_at: item.created_at ? item.created_at.split('T')[0] : ''
+                                                            });
+                                                        }}
+                                                        aria-label="Modifier cet avis"
+                                                        title="Modifier cet avis"
+                                                        style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                                                    >
+                                                        <Edit3 size={15} aria-hidden="true" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteMessage(item.id)}
+                                                        aria-label="Supprimer cet avis"
+                                                        title="Supprimer cet avis"
+                                                        style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                                                    >
+                                                        <Trash2 size={15} aria-hidden="true" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    {/* NOUVEAU : Affichage du message ou du champ de modification */}
+                                    {/* Formulaire de modification d'un avis (Mode Admin) */}
                                     {editingMessageId === item.id ? (
-                                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <textarea
-                                                rows="3"
-                                                value={editMessageText}
-                                                onChange={(e) => setEditMessageText(e.target.value)}
-                                                style={{ background: '#111', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px', fontSize: '0.95rem', fontFamily: 'inherit' }}
-                                            />
-                                            <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px' }}>
-                                                <button onClick={() => handleUpdateMessage(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '4px 12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Enregistrer</button>
-                                                <button onClick={() => setEditingMessageId(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '4px 12px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px' }}>Annuler</button>
+                                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#1a1a1a', padding: '15px', borderRadius: '8px', border: '1px solid #333' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <label htmlFor={`date-${item.id}`} style={{ color: '#aaa', fontSize: '0.8rem' }}>Date de l'avis :</label>
+                                                <input id={`date-${item.id}`} type="date" value={editFormData.created_at || ''} onChange={(e) => setEditFormData({ ...editFormData, created_at: e.target.value })} style={{ background: '#111', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', width: '100%', boxSizing: 'border-box', colorScheme: 'dark' }} />
+                                            </div>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                                <input type="text" aria-label="Prénom modifié" placeholder="Prénom" value={editFormData.first_name} onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })} style={{ background: '#111', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }} />
+                                                <input type="text" aria-label="Nom modifié" placeholder="Nom" value={editFormData.last_name} onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })} style={{ background: '#111', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }} />
+                                            </div>
+
+                                            <select aria-label="Département modifié" value={editFormData.city} onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })} style={{ background: '#111', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', width: '100%', boxSizing: 'border-box' }}>
+                                                <option value="" disabled>Sélectionnez le département</option>
+                                                {DEPARTMENTS.map((dept) => (
+                                                    <option key={dept.code} value={dept.code} style={{ background: '#111', color: 'white' }}>{dept.name}</option>
+                                                ))}
+                                            </select>
+
+                                            <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                                                <span style={{ color: '#aaa', fontSize: '0.85rem', marginRight: '5px' }}>Note :</span>
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button type="button" aria-label={`Mettre ${star} étoile${star > 1 ? 's' : ''}`} key={star} onClick={() => setEditFormData({ ...editFormData, rating: star })} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                                        <Star size={18} fill={editFormData.rating >= star ? '#D4AF37' : 'transparent'} color={editFormData.rating >= star ? '#D4AF37' : '#555'} />
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <textarea aria-label="Message modifié" rows="3" value={editFormData.message} onChange={(e) => setEditFormData({ ...editFormData, message: e.target.value })} style={{ background: '#111', border: '1px solid #333', padding: '10px', color: 'white', borderRadius: '4px', fontSize: '0.95rem', fontFamily: 'inherit' }} />
+
+                                            <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '8px', marginTop: '5px' }}>
+                                                <button type="button" onClick={() => handleUpdateMessage(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '6px 12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Enregistrer</button>
+                                                <button type="button" onClick={() => setEditingMessageId(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px' }}>Annuler</button>
                                             </div>
                                         </div>
                                     ) : (
@@ -401,12 +561,12 @@ const Guestbook = () => {
                                                     Yann Guedes - Taxidermiste
                                                 </span>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                    <span style={{ color: '#666', fontSize: '0.75rem' }}>{new Date(item.reply_date).toLocaleDateString('fr-FR')}</span>
+                                                    <time dateTime={item.reply_date} style={{ color: '#666', fontSize: '0.75rem' }}>{new Date(item.reply_date).toLocaleDateString('fr-FR')}</time>
 
                                                     {user && (
                                                         <div style={{ display: 'flex', gap: '6px' }}>
-                                                            <button onClick={() => { setEditingReplyId(item.id); setEditReplyText(item.reply); }} title="Modifier la réponse" style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: 0 }}><Edit3 size={14} /></button>
-                                                            <button onClick={() => handleDeleteReply(item.id)} title="Supprimer la réponse" style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: 0 }}><Trash2 size={14} /></button>
+                                                            <button type="button" onClick={() => { setEditingReplyId(item.id); setEditReplyText(item.reply); }} aria-label="Modifier la réponse" title="Modifier la réponse" style={{ background: 'transparent', border: 'none', color: '#D4AF37', cursor: 'pointer', padding: 0 }}><Edit3 size={14} aria-hidden="true" /></button>
+                                                            <button type="button" onClick={() => handleDeleteReply(item.id)} aria-label="Supprimer la réponse" title="Supprimer la réponse" style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: 0 }}><Trash2 size={14} aria-hidden="true" /></button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -414,10 +574,10 @@ const Guestbook = () => {
 
                                             {editingReplyId === item.id ? (
                                                 <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                                    <textarea rows="2" value={editReplyText} onChange={(e) => setEditReplyText(e.target.value)} style={{ background: '#111', border: '1px solid #333', padding: '6px', color: 'white', borderRadius: '4px', fontSize: '0.85rem' }} />
+                                                    <textarea aria-label="Texte de votre réponse" rows="2" value={editReplyText} onChange={(e) => setEditReplyText(e.target.value)} style={{ background: '#111', border: '1px solid #333', padding: '6px', color: 'white', borderRadius: '4px', fontSize: '0.85rem' }} />
                                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                                                        <button onClick={() => setEditingReplyId(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '2px 8px', fontSize: '0.75rem', cursor: 'pointer', borderRadius: '3px' }}>Annuler</button>
-                                                        <button onClick={() => handleUpdateReply(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '2px 8px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '3px' }}>Enregistrer</button>
+                                                        <button type="button" onClick={() => setEditingReplyId(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '2px 8px', fontSize: '0.75rem', cursor: 'pointer', borderRadius: '3px' }}>Annuler</button>
+                                                        <button type="button" onClick={() => handleUpdateReply(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '2px 8px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '3px' }}>Enregistrer</button>
                                                     </div>
                                                 </div>
                                             ) : (
@@ -429,26 +589,24 @@ const Guestbook = () => {
                                             <div style={{ marginTop: '10px', textAlign: 'right' }}>
                                                 {replyingTo === item.id ? (
                                                     <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                        <textarea rows="2" placeholder="Votre réponse d'artisan..." value={replyText} onChange={(e) => setReplyText(e.target.value)} style={{ background: '#1c1c1c', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', fontSize: '0.9rem', fontFamily: 'inherit' }}></textarea>
+                                                        <textarea aria-label="Votre réponse d'artisan" rows="2" placeholder="Votre réponse d'artisan..." value={replyText} onChange={(e) => setReplyText(e.target.value)} style={{ background: '#1c1c1c', border: '1px solid #333', padding: '8px', color: 'white', borderRadius: '4px', fontSize: '0.9rem', fontFamily: 'inherit' }}></textarea>
                                                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                                                            <button onClick={() => setReplyTo(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px' }}>Annuler</button>
-                                                            <button onClick={() => handleAdminReply(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '4px 12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Envoyer</button>
+                                                            <button type="button" onClick={() => setReplyTo(null)} style={{ background: 'transparent', color: '#888', border: '1px solid #333', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px' }}>Annuler</button>
+                                                            <button type="button" onClick={() => handleAdminReply(item.id)} style={{ background: '#D4AF37', color: '#000', border: 'none', padding: '4px 12px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', borderRadius: '4px' }}>Envoyer</button>
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => { setReplyTo(item.id); setReplyText(''); }} style={{ background: 'transparent', color: '#888', border: 'none', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: 0 }}>
-                                                        <CornerDownRight size={14} color="#D4AF37" /> Répondre en tant qu'artisan
+                                                    <button type="button" onClick={() => { setReplyTo(item.id); setReplyText(''); }} style={{ background: 'transparent', color: '#888', border: 'none', cursor: 'pointer', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: 0 }}>
+                                                        <CornerDownRight size={14} color="#D4AF37" aria-hidden="true" /> Répondre en tant qu'artisan
                                                     </button>
                                                 )}
                                             </div>
                                         )
                                     )}
-
-                                </div>
+                                </article>
                             ))
                         )}
                     </div>
-
                 </div>
             </div>
         </section>
